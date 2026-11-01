@@ -224,11 +224,11 @@
 
             statusMsg.innerText = 'Saving to database...';
 
-            // 3. Insert Track Record with collection_id (blank/null for standalone single)
+            // 3. Insert Track Record (artistId sent as UUID string, collection_id handled safely)
             const { error: dbError } = await _supabase.from('tracks').insert([{
                 title: title,
-                artist_id: parseInt(artistId),
-                collection_id: collectionId ? parseInt(collectionId) : null,
+                artist_id: artistId,
+                collection_id: collectionId ? (isNaN(collectionId) ? collectionId : parseInt(collectionId)) : null,
                 audio_file_path: audioPublicUrl.publicUrl,
                 artwork_url: artworkPublicUrl,
                 apple_music_url: document.getElementById('apple-url').value.trim(),
