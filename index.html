@@ -3,136 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2G Music Player</title>
-    <!-- Include Supabase JS Client -->
+    <title>2G Entertainment - Music Player</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* Basic Dark & Orange 2G Styling */
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .player-container {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 12px;
-            width: 320px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            text-align: center;
-            border: 1px solid #333;
-        }
-        .track-info img {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 12px;
-        }
-        .track-info h3 {
-            margin: 5px 0;
-            font-size: 18px;
-        }
-        .track-info p {
-            color: #ff8c00;
-            margin: 0 0 15px 0;
-            font-size: 14px;
-        }
-        .subscribe-container {
-            margin-bottom: 20px;
-        }
-        #subscribe-btn {
-            background-color: #ff8c00;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            font-weight: bold;
-            border-radius: 20px;
-            cursor: pointer;
-            width: 100%;
-        }
-        #subscribe-input-box {
-            display: none;
-            gap: 5px;
-        }
-        #subscribe-input-box input {
-            flex: 1;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #444;
-            background: #111;
-            color: #fff;
-        }
-        #subscribe-input-box button {
-            background: #ff8c00;
-            border: none;
-            padding: 8px 12px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            align-items: center;
-        }
-        .controls button {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        #play-pause-btn {
-            background: #ff8c00;
-            color: #000;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px;
-        }
-    </style>
 </head>
 <body>
 
     <div class="player-container">
-        <!-- Artwork & Track Info -->
         <div class="track-info">
-            <img id="current-artwork" src="https://via.placeholder.com/250" alt="Artwork">
-            <div>
-                <h3 id="current-title">Loading Track...</h3>
-                <p id="current-artist">2G Entertainment</p>
-            </div>
+            <img id="track-artwork" src="" alt="Artwork">
+            <h3 id="track-title">Loading...</h3>
+            <p id="artist-name">2G Entertainment</p>
         </div>
 
-        <!-- Interactive Smart Subscribe Button -->
         <div class="subscribe-container">
-            <button id="subscribe-btn" onclick="transformSubscribeInput()">SUBSCRIBE</button>
-            <div id="subscribe-input-box" style="display: none;">
-                <input type="email" id="fan-email" placeholder="Enter email...">
-                <button onclick="submitFanSubscription()">Join</button>
+            <button id="subscribe-btn" onclick="showSubscribeInput()">SUBSCRIBE</button>
+            <div id="subscribe-input-box" class="hidden">
+                <input type="email" id="subscriber-email" placeholder="Enter your email...">
+                <button onclick="submitSubscriber()">Join</button>
             </div>
         </div>
 
-        <!-- Audio Element & Playback Controls -->
-        <audio id="audio-player"></audio>
         <div class="controls">
-            <button onclick="prevTrack()">⏮</button>
-            <button id="play-pause-btn" onclick="togglePlay()">▶</button>
-            <button onclick="nextTrack()">⏭</button>
+            <button id="prev-btn" onclick="prevTrack()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+            </button>
+            <button id="play-pause-btn" onclick="togglePlay()">
+                <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg id="pause-icon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+            </button>
+            <button id="next-btn" onclick="nextTrack()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+            </button>
         </div>
     </div>
 
-    <!-- JavaScript Engine Script -->
+    <audio id="audio-player"></audio>
+
     <script src="script.js"></script>
 </body>
 </html>
