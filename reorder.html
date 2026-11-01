@@ -6,9 +6,9 @@
     <title>2G Entertainment - Drag & Drop Catalog Suite</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-       <script>
-        // Security Guard: Check both localStorage and sessionStorage for auth
-        if (localStorage.getItem('2g_admin_auth') !== 'true' && sessionStorage.getItem('2g_admin_auth') !== 'true') {
+    <script>
+        // Security Guard: Check session authentication
+        if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
             window.location.href = 'adminhub.html';
         }
 
@@ -16,20 +16,153 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     </script>
-
-        <script>
-        // Security Guard: Check both localStorage and sessionStorage for auth
-        const localAuth = localStorage.getItem('2g_admin_auth');
-        const sessionAuth = sessionStorage.getItem('2g_admin_auth');
-
-        if (localAuth !== 'true' && sessionAuth !== 'true') {
-            window.location.href = 'adminhub.html';
+    
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
         }
+        .admin-container {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            width: 520px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+        }
+        h2 { color: #ff8c00; text-align: center; margin-top: 0; font-size: 18px; }
+        p.instructions { text-align: center; font-size: 12px; color: #888; margin-bottom: 15px; }
+        
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #ff8c00;
+            color: #000;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            flex: 1;
+            font-size: 13px;
+        }
+        button:hover { background-color: #e07b00; }
+        .secondary-btn {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #444;
+        }
+        .secondary-btn:hover { background-color: #444; border-color: #ff8c00; }
+        
+        /* Auto-Shuffle Toggle Box */
+        .toggle-box {
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            padding: 10px 14px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .3s; border-radius: 22px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #ff8c00; }
+        input:checked + .slider:before { transform: translateX(22px); }
 
-        const SUPABASE_URL = 'https://chhwujiajdhaihupvuix.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        /* Drag & Drop Track List */
+        .track-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 48vh;
+            padding-right: 4px;
+            margin-bottom: 15px;
+        }
+        .track-card {
+            background: #252525;
+            padding: 10px 14px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #333;
+            cursor: grab;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s;
+        }
+        .track-card:active { cursor: grabbing; }
+        .track-card.dragging { opacity: 0.4; border-color: #ff8c00; }
+        .track-card.drag-over { border-color: #ff8c00; background: #2f2316; }
+        .track-card img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+        .track-info-box { flex: 1; overflow: hidden; }
+        .track-title { font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .track-artist { font-size: 11px; color: #ff8c00; margin-top: 2px; }
+        .drag-handle { color: #555; font-size: 16px; cursor: grab; padding: 0 4px; }
 
+        #status-msg { text-align: center; font-size: 13px; color: #ff8c00; min-height: 18px; }
+        .back-link { text-align: center; margin-top: 10px; font-size: 12px; color: #888; text-decoration: none; }
+        .back-link:hover { color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <h2>Manage Playlist Order & Rotation</h2>
+        <p class="instructions">Click and drag cards to reorder. Changes auto-save on drop.</p>
+
+        <!-- Weekly Auto-Shuffle Toggle Switch -->
+        <div class="toggle-box">
+            <span>Auto-Shuffle Weekly Rotation</span>
+            <label class="switch">
+                <input type="checkbox" id="auto-shuffle-toggle" onchange="toggleAutoShuffle()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="action-bar">
+            <button class="secondary-btn" onclick="randomizeCatalog()">🎲 Randomize Order</button>
+            <button onclick="saveCatalogOrder()">💾 Save New Order</button>
+        </div>
+
+        <!-- Catalog Drag & Drop Container -->
+        <div id="track-list" class="track-list">
+            <p style="text-align:center; color:#888;">Loading catalog...</p>
+        </div>
+
+        <p id="status-msg"></p>
+        <a href="adminhub.html" class="back-link">← Back to Master Admin Hub</a>
+    </div>
+
+    <script>
         let localCatalog = [];
         let draggedIndex = null;
 
@@ -164,6 +297,8 @@
             setTimeout(() => { statusMsg.innerText = ''; }, 2500);
         }
         
+        // Trigger load once page is fully parsed
         loadAdminCatalog();
     </script>
-
+</body>
+</html>
