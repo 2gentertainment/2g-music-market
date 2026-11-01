@@ -118,14 +118,15 @@
     </div>
 
     <script>
-        const ADMIN_PASSWORD = "2gentertainment";[span_0](start_span)[span_0](end_span)
+        const ADMIN_PASSWORD = "2gentertainment";
 
         function verifyPassword() {
             const inputVal = document.getElementById('admin-pass').value;
             const errorMsg = document.getElementById('error-msg');
 
             if (inputVal === ADMIN_PASSWORD) {
-                sessionStorage.setItem('2g_admin_auth', 'true');
+                // Using localStorage so you stay logged in across navigation clicks
+                localStorage.setItem('2g_admin_auth', 'true');
                 showDashboard();
             } else {
                 errorMsg.innerText = "Incorrect password. Try again.";
@@ -142,8 +143,9 @@
             document.getElementById('dashboard-box').classList.remove('hidden');
         }
 
+        // Auto-unlock if already authenticated via localStorage
         window.onload = function() {
-            if (sessionStorage.getItem('2g_admin_auth') === 'true') {
+            if (localStorage.getItem('2g_admin_auth') === 'true') {
                 showDashboard();
             }
         };
