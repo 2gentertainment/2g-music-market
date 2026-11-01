@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2G Entertainment - Catalog Reorder Suite</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .admin-container {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            width: 480px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        h2 { color: #ff8c00; text-align: center; margin-top: 0; font-size: 18px; }
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #ff8c00;
+            color: #000;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            flex: 1;
+            font-size: 13px;
+        }
+        button:hover { background-color: #e07b00; }
+        .secondary-btn {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #444;
+        }
+        .secondary-btn:hover { background-color: #444; border-color: #ff8c00; }
+        
+        /* Auto-Shuffle Toggle Box */
+        .toggle-box {
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .3s; border-radius: 22px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #ff8c00; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Track List for Reordering */
+        .track-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 45vh;
+            padding-right: 4px;
+            margin-bottom: 15px;
+        }
+        .track-row {
+            background: #252525;
+            padding: 10px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #333;
+        }
+        .track-row img { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; }
+        .track-title { flex: 1; font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-row input[type="number"] {
+            width: 50px;
+            padding: 6px;
+            background: #111;
+            border: 1px solid #444;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        #status-msg { text-align: center; font-size: 13px; color: #ff8c00; min-height: 18px; }
+        .back-link { text-align: center; margin-top: 10px; font-size: 12px; color: #888; text-decoration: none; }
+        .back-link:hover { color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <h2>Manage Playlist Order & Rotation</h2>
+
+        <!-- Weekly Auto-Shuffle Toggle Switch -->
+        <div class="toggle-box">
+            <span>Auto-Shuffle Weekly Rotation</span>
+            <label class="switch">
+                <input type="checkbox" id="auto-shuffle-toggle" onchange="toggleAutoShuffle()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="action-bar">
+            <button class="secondary-btn" onclick="randomizeCatalog()">🎲 Randomize Order</button>
+            <button onclick="saveCatalogOrder()">💾 Save New Order</button>
+        </div>
+
+        <!-- Catalog List -->
+        <div id="track-list" class="track-list">
+            <p style="text-align:center; color:#888;">Loading catalog...</p>
+        </div>
+
+        <p id="status-msg"></p>
+        <a href="index.html" class="back-link">← Back to Master Admin Hub</a>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://chhwujiajdhaihupvuix.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let localCatalog = [];
+
+        async function loadAdminCatalog() {
+            const { data, error } = await _supabase
+                .from('tracks')
+                .select('id, title, artwork_url, sort_order, artists(name)')
+                .order('sort_order', { ascending: true, nullsFirst: false });
+
+            if (error) {
+                console.error('Error loading catalog:', error);
+                document.getElementById('track-list').innerHTML = '<p style="color:red; text-align:center;">Error loading tracks.</p>';
+                return;
+            }
+
+            localCatalog = data ||chter = [];
+            renderTrackList();
+            checkAutoShuffleStatus();
+        }
+
+        function renderTrackList() {
+            const container = document.getElementById('track-list');
+            container.innerHTML = '';
+
+            localCatalog.forEach((track, index) => {
+                const row = document.createElement('div');
+                row.className = 'track-row';
+                const artistName = track.artists ? track.artists.name : '2G Entertainment';
+
+                row.innerHTML = `
+                    <img src="${track.artwork_url || ''}" alt="Art">
+                    <div class="track-title">
+                        <div>${track.title}</div>
+                        <div style="font-size:11px; color:#ff8c00; font-weight:normal;">${artistName}</div>
+                    </div>
+                    <input type="number" value="${index + 1}" data-id="${track.id}" class="order-input" min="1">
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Randomize list sequence locally
+        function randomizeCatalog() {
+            for (let i = localCatalog.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [localCatalog[i], localCatalog[j]] = [localCatalog[j], localCatalog[i]];
+            }
+            renderTrackList();
+            document.getElementById('status-msg').innerText = 'Catalog shuffled! Click "Save New Order" to commit.';
+        }
+
+        // Save customized order sequence back to Supabase
+        async function saveCatalogOrder() {
+            const statusMsg = document.getElementById('status-msg');
+            statusMsg.innerText = 'Saving order...';
+
+            const inputs = document.querySelectorAll('.order-input');
+            let updates = [];
+
+            inputs.forEach((input, index) => {
+                const trackId = input.getAttribute('data-id');
+                const newOrder = parseInt(input.value) || (index + 1);
+                updates.push(_supabase.from('tracks').update({ sort_order: newOrder }).eq('id', trackId));
+            });
+
+            try {
+                await Promise.all(updates);
+                statusMsg.innerText = 'Order saved successfully!';
+                setTimeout(() => { statusMsg.innerText = ''; }, 3000);
+                loadAdminCatalog();
+            } catch (err) {
+                console.error(err);
+                statusMsg.innerText = 'Error saving order.';
+            }
+        }
+
+        // Handle Auto-Shuffle weekly setting (saved locally or to config)
+        function checkAutoShuffleStatus() {
+            const isAuto = localStorage.getItem('2g_auto_shuffle') === 'true';
+            document.getElementById('auto-shuffle-toggle').checked = isAuto;
+        }
+
+        function toggleAutoShuffle() {
+            const isChecked = document.getElementById('auto-shuffle-toggle').checked;
+            localStorage.setItem('2g_auto_shuffle', isChecked);
+            const statusMsg = document.getElementById('status-msg');
+            statusMsg.innerText = isChecked ? 'Weekly Auto-Shuffle enabled.' : 'Weekly Auto-Shuffle disabled.';
+            setTimeout(() => { statusMsg.innerText = ''; }, 2500);
+        }
+
+        loadAdminCatalog();
+    </script>
+</body>
+</html>
