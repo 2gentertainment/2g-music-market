@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // Security Guard: Check session authentication
+        // Security Guard: Strict session check
         if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
             window.location.href = 'adminhub.html';
         }
@@ -184,12 +184,11 @@
                 const artistObj = artistsList.find(a => a.id === item.artist_id);
                 const subtitle = artistObj ? `${item.type} • ${artistObj.name}` : item.type;
                 const visibilityText = item.is_visible ? '👁️ Visible' : '🔒 Hidden';
-                const visibilityClass = item.is_visible ? '' : 'style="opacity: 0.5;"';
 
                 const card = document.createElement('div');
                 card.className = 'collection-item';
                 card.innerHTML = `
-                    <div class="collection-info" ${visibilityClass}>
+                    <div class="collection-info">
                         <div>${item.title}</div>
                         <div>${subtitle}</div>
                     </div>
