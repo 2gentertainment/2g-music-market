@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2G Entertainment - Catalog Reorder Suite</title>
+    <title>2G Entertainment - Drag & Drop Catalog Suite</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
@@ -20,14 +20,16 @@
             background: #1e1e1e;
             padding: 30px;
             border-radius: 12px;
-            width: 480px;
+            width: 520px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             border: 1px solid #333;
-            max-height: 90vh;
+            max-height: 92vh;
             display: flex;
             flex-direction: column;
         }
         h2 { color: #ff8c00; text-align: center; margin-top: 0; font-size: 18px; }
+        p.instructions { text-align: center; font-size: 12px; color: #888; margin-bottom: 15px; }
+        
         .action-bar {
             display: flex;
             gap: 10px;
@@ -56,7 +58,7 @@
         .toggle-box {
             background: #161616;
             border: 1px solid #2a2a2a;
-            padding: 12px;
+            padding: 10px 14px;
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
@@ -82,37 +84,42 @@
         input:checked + .slider { background-color: #ff8c00; }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        /* Track List for Reordering */
+        /* Drag & Drop Track List */
         .track-list {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 45vh;
+            max-height: 48vh;
             padding-right: 4px;
             margin-bottom: 15px;
         }
-        .track-row {
+        .track-card {
             background: #252525;
-            padding: 10px 12px;
+            padding: 10px 14px;
             border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             border: 1px solid #333;
+            cursor: grab;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s;
         }
-        .track-row img { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; }
-        .track-title { flex: 1; font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .track-row input[type="number"] {
-            width: 50px;
-            padding: 6px;
-            background: #111;
-            border: 1px solid #444;
-            color: #fff;
-            text-align: center;
-            border-radius: 4px;
+        .track-card:active { cursor: grabbing; }
+        .track-card.dragging {
+            opacity: 0.4;
+            border-color: #ff8c00;
         }
+        .track-card.drag-over {
+            border-color: #ff8c00;
+            background: #2f2316;
+        }
+        .track-card img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+        .track-info-box { flex: 1; overflow: hidden; }
+        .track-title { font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .track-artist { font-size: 11px; color: #ff8c00; margin-top: 2px; }
+        .drag-handle { color: #555; font-size: 16px; cursor: grab; padding: 0 4px; }
 
         #status-msg { text-align: center; font-size: 13px; color: #ff8c00; min-height: 18px; }
         .back-link { text-align: center; margin-top: 10px; font-size: 12px; color: #888; text-decoration: none; }
@@ -123,6 +130,7 @@
 
     <div class="admin-container">
         <h2>Manage Playlist Order & Rotation</h2>
+        <p class="instructions">Click and drag cards to reorder. Changes auto-save on drop.</p>
 
         <!-- Weekly Auto-Shuffle Toggle Switch -->
         <div class="toggle-box">
@@ -139,7 +147,7 @@
             <button onclick="saveCatalogOrder()">💾 Save New Order</button>
         </div>
 
-        <!-- Catalog List -->
+        <!-- Catalog Drag & Drop Container -->
         <div id="track-list" class="track-list">
             <p style="text-align:center; color:#888;">Loading catalog...</p>
         </div>
@@ -154,6 +162,7 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let localCatalog = [];
+        let draggedIndex = null;
 
         async function loadAdminCatalog() {
             const { data, error } = await _supabase
@@ -176,62 +185,100 @@
             const container = document.getElementById('track-list');
             container.innerHTML = '';
 
+            if (localCatalog.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#888;">No tracks found in catalog.</p>';
+                return;
+            }
+
             localCatalog.forEach((track, index) => {
-                const row = document.createElement('div');
-                row.className = 'track-row';
+                const card = document.createElement('div');
+                card.className = 'track-card';
+                card.draggable = true;
+                card.setAttribute('data-index', index);
+
                 const artistName = track.artists ? track.artists.name : '2G Entertainment';
 
-                row.innerHTML = `
+                card.innerHTML = `
+                    <span class="drag-handle">☰</span>
                     <img src="${track.artwork_url || ''}" alt="Art">
-                    <div class="track-title">
-                        <div>${track.title}</div>
-                        <div style="font-size:11px; color:#ff8c00; font-weight:normal;">${artistName}</div>
+                    <div class="track-info-box">
+                        <div class="track-title">${track.title}</div>
+                        <div class="track-artist">${artistName}</div>
                     </div>
-                    <input type="number" value="${track.sort_order || (index + 1)}" data-id="${track.id}" class="order-input" min="1">
                 `;
-                container.appendChild(row);
+
+                // Drag and Drop Event Listeners
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('dragleave', handleDragLeave);
+                card.addEventListener('drop', handleDrop);
+                card.addEventListener('dragend', handleDragEnd);
+
+                container.appendChild(card);
             });
         }
 
-        // Randomize list sequence locally
+        function handleDragStart(e) {
+            draggedIndex = parseInt(this.getAttribute('data-index'));
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+        }
+
+        function handleDragLeave() {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetIndex = parseInt(this.getAttribute('data-index'));
+            
+            if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                // Reorder array items
+                const movedItem = localCatalog.splice(draggedIndex, 1)[0];
+                localCatalog.splice(targetIndex, 0, movedItem);
+                renderTrackList();
+                saveCatalogOrder(true); // Auto-save on drop quietly
+            }
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.track-card').forEach(c => c.classList.remove('drag-over'));
+        }
+
+        // Randomize list sequence locally & auto-save
         function randomizeCatalog() {
             for (let i = localCatalog.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [localCatalog[i], localCatalog[j]] = [localCatalog[j], localCatalog[i]];
             }
-            // Update input sequence values visually to match the new random array order
-            const inputs = document.querySelectorAll('.order-input');
-            inputs.forEach((input, index) => {
-                const trackId = input.getAttribute('data-id');
-                const matchedTrack = localCatalog.find(t => t.id === trackId);
-                if (matchedTrack) {
-                    input.value = index + 1;
-                }
-            });
             renderTrackList();
-            document.getElementById('status-msg').innerText = 'Catalog shuffled! Click "Save New Order" to commit.';
+            saveCatalogOrder(true);
+            document.getElementById('status-msg').innerText = 'Catalog randomized & saved!';
+            setTimeout(() => { document.getElementById('status-msg').innerText = ''; }, 2500);
         }
 
         // Save customized order sequence back to Supabase
-        async function saveCatalogOrder() {
+        async function saveCatalogOrder(isSilent = false) {
             const statusMsg = document.getElementById('status-msg');
-            statusMsg.innerText = 'Saving order...';
+            if (!isSilent) statusMsg.innerText = 'Saving order...';
 
-            const rows = document.querySelectorAll('.track-row');
-            let updates = [];
-
-            rows.forEach((row, index) => {
-                const input = row.querySelector('.order-input');
-                const trackId = input.getAttribute('data-id');
-                const newOrder = parseInt(input.value) || (index + 1);
-                updates.push(_supabase.from('tracks').update({ sort_order: newOrder }).eq('id', trackId));
+            let updates = localCatalog.map((track, index) => {
+                return _supabase.from('tracks').update({ sort_order: index + 1 }).eq('id', track.id);
             });
 
             try {
                 await Promise.all(updates);
-                statusMsg.innerText = 'Order saved successfully!';
-                setTimeout(() => { statusMsg.innerText = ''; }, 3000);
-                loadAdminCatalog();
+                if (!isSilent) {
+                    statusMsg.innerText = 'Order saved successfully!';
+                    setTimeout(() => { statusMsg.innerText = ''; }, 3000);
+                }
             } catch (err) {
                 console.error(err);
                 statusMsg.innerText = 'Error saving order.';
