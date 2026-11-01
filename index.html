@@ -836,7 +836,7 @@
             const track = activePlaylist[currentIndex];
             if (!track) return;
             const container = document.getElementById('store-links-container');
-            container.innerHTML = '',
+            container.innerHTML = '';
 
             let count = 0;
             if (track.store_single_url && track.store_single_url.trim() !== '') {
@@ -864,7 +864,6 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
-            document.getElementById('store-modal').classList.add('hidden'); // wait, let's keep it clean
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
