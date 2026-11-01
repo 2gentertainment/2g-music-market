@@ -205,7 +205,7 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h3 id="modal-title">Manage Tracks</h3>
-                <button class="close-btn" onclick="closeTrackModal()">&times;</button>
+                <button type="button" class="close-btn" onclick="closeTrackModal()">&times;</button>
             </div>
             <p style="font-size: 12px; color: #aaa; margin-top:0;">Assign or remove songs for this collection:</p>
             <div id="modal-tracks-container" class="modal-track-list">
@@ -267,22 +267,30 @@
                 const artistObj = artistsList.find(a => a.id === item.artist_id);
                 const subtitle = artistObj ? `${item.type} • ${artistObj.name}` : item.type;
                 const visibilityText = item.is_visible ? '👁️ Visible' : '🔒 Hidden';
-                const safeTitle = item.title.replace(/"/g, '&quot;').replace(/'/g, "&#39;");
 
                 const card = document.createElement('div');
                 card.className = 'collection-item';
+                
+                // Using dataset attributes instead of injecting unescaped string literals into inline onclick handlers
                 card.innerHTML = `
                     <div class="collection-info">
                         <div>${item.title}</div>
                         <div>${subtitle}</div>
                     </div>
                     <div class="collection-actions">
-                        <button type="button" class="manage-btn small-btn" onclick="openTrackModal(${item.id}, '${safeTitle}')">Songs</button>
+                        <button type="button" class="manage-btn small-btn song-trigger-btn" data-id="${item.id}" data-title="${item.title.replace(/"/g, '&quot;')}">Songs</button>
                         <button type="button" class="secondary-btn small-btn" onclick="toggleVisibility(${item.id}, ${item.is_visible})">${visibilityText}</button>
                         <button type="button" class="delete-btn small-btn" onclick="deleteCollection(${item.id})">Delete</button>
                     </div>
                 `;
                 container.appendChild(card);
+            });
+
+            // Bind click listeners via JS directly to avoid HTML parsing bugs
+            document.querySelectorAll('.song-trigger-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    openTrackModal(parseInt(btn.getAttribute('data-id')), btn.getAttribute('data-title'));
+                });
             });
         }
 
@@ -386,14 +394,27 @@
                         <div>${track.title}</div>
                         <div>${artistName}</div>
                     </div>
-                    <div>
-                        ${isAssigned 
-                            ? `<button type="button" class="delete-btn small-btn" onclick="assignTrackToCollection(${track.id}, null)">Remove</button>`
-                            : `<button type="button" class="small-btn" style="background:#ff8c00; color:#000;" onclick="assignTrackToCollection(${track.id}, ${activeCollectionId})">Add</button>`
-                        }
-                    </div>
+                    <div id="action-cell-${track.id}"></div>
                 `;
                 container.appendChild(row);
+
+                // Safely bind add/remove buttons via DOM to avoid script injection drop-outs
+                const actionCell = document.getElementById(`action-cell-${track.id}`);
+                const actionBtn = document.createElement('button');
+                actionBtn.type = 'button';
+                actionBtn.className = 'small-btn';
+
+                if (isAssigned) {
+                    actionBtn.innerText = 'Remove';
+                    actionBtn.className += ' delete-btn';
+                    actionBtn.onclick = () => assignTrackToCollection(track.id, null);
+                } else {
+                    actionBtn.innerText = 'Add';
+                    actionBtn.style.background = '#ff8c00';
+                    actionBtn.style.color = '#000';
+                    actionBtn.onclick = () => assignTrackToCollection(track.id, activeCollectionId);
+                }
+                actionCell.appendChild(actionBtn);
             });
         }
 
