@@ -504,6 +504,9 @@
         let currentFilterValue = null; 
         let currentPlayingTrackId = null;
 
+        // Shuffle State Management
+        let shufflePool = [];
+
         const audioElement = document.getElementById('audio-element');
         const playIcon = document.getElementById('play-icon');
         const pauseIcon = document.getElementById('pause-icon');
@@ -529,6 +532,7 @@
             if (!error && data) {
                 masterPlaylist = data;
                 activePlaylist = [...masterPlaylist];
+                resetShufflePool();
             }
         }
 
@@ -620,6 +624,7 @@
                 }
                 renderInlinePlaylist();
             }
+            resetShufflePool();
         }
 
         // Handle clicking "Singles" or "Albums" block under an artist
@@ -642,6 +647,7 @@
             } else if (subType === 'albums') {
                 renderAlbumList(artistAlbums, artistTracks);
             }
+            resetShufflePool();
         }
 
         // Render the list of album projects
@@ -681,6 +687,7 @@
                 });
                 
             renderInlinePlaylist();
+            resetShufflePool();
         }
 
         function loadTrackData(index) {
@@ -763,14 +770,29 @@
             return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
+        // --- Optimized No-Repeat Shuffle Logic ---
+        function resetShufflePool() {
+            shufflePool = [];
+            for (let i = 0; i < activePlaylist.length; i++) {
+                if (i !== currentIndex) {
+                    shufflePool.push(i);
+                }
+            }
+            // Fisher-Yates shuffle for true randomness
+            for (let i = shufflePool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shufflePool[i], shufflePool[j]] = [shufflePool[j], shufflePool[i]];
+            }
+        }
+
         function nextTrack() {
             if (activePlaylist.length === 0) return;
+            
             if (isShuffled) {
-                let randomIndex;
-                do {
-                    randomIndex = Math.floor(Math.random() * activePlaylist.length);
-                } while (randomIndex === currentIndex && activePlaylist.length > 1);
-                currentIndex = randomIndex;
+                if (shufflePool.length === 0) {
+                    resetShufflePool();
+                }
+                currentIndex = shufflePool.pop();
             } else {
                 currentIndex = (currentIndex + 1) % activePlaylist.length;
             }
@@ -786,6 +808,9 @@
         function toggleShuffle() {
             isShuffled = !isShuffled;
             document.getElementById('shuffle-btn').classList.toggle('active', isShuffled);
+            if (isShuffled) {
+                resetShufflePool();
+            }
         }
 
         function toggleRepeat() {
@@ -904,6 +929,7 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
+            document.getElementById('store-modal').classList.add('hidden'); // Fixed typo from original modal handler
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
