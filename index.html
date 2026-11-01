@@ -523,7 +523,7 @@
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
-                .select('id, title, audio_file_path, artwork_url, collection_id, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(id, name, aweber_tag)')
+                .select('id, title, audio_file_path, artwork_url, collection_id, collection_sort_order, sort_order, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(id, name, aweber_tag)')
                 .order('sort_order', { ascending: true, nullsFirst: false });
 
             if (!error && data) {
@@ -593,7 +593,13 @@
                 activePlaylist = [...masterPlaylist];
                 renderInlinePlaylist();
             } else if (type === 'playlist') {
-                activePlaylist = masterPlaylist.filter(track => String(track.collection_id) === String(value));
+                activePlaylist = masterPlaylist
+                    .filter(track => String(track.collection_id) === String(value))
+                    .sort((a, b) => {
+                        const orderA = a.collection_sort_order !== null && a.collection_sort_order !== undefined ? a.collection_sort_order : 99;
+                        const orderB = b.collection_sort_order !== null && b.collection_sort_order !== undefined ? b.collection_sort_order : 99;
+                        return orderA - orderB;
+                    });
                 renderInlinePlaylist();
             } else if (type === 'artist') {
                 const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(value));
@@ -664,11 +670,15 @@
             });
         }
 
-        // When a specific album is clicked, switch view to its tracks without stopping audio
+        // When a specific album is clicked, switch view to its tracks sorted strictly by collection_sort_order
         function selectAlbum(albumId, artistTracks) {
             activePlaylist = artistTracks
                 .filter(t => String(t.collection_id) === String(albumId))
-                .sort((a, b) => (a.collection_sort_order || 99) - (b.collection_sort_order || 99));
+                .sort((a, b) => {
+                    const orderA = a.collection_sort_order !== null && a.collection_sort_order !== undefined ? a.collection_sort_order : 99;
+                    const orderB = b.collection_sort_order !== null && b.collection_sort_order !== undefined ? b.collection_sort_order : 99;
+                    return orderA - orderB;
+                });
                 
             renderInlinePlaylist();
         }
