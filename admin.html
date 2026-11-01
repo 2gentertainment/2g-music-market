@@ -48,7 +48,17 @@
             margin-top: 10px;
         }
         button:hover { background-color: #e07b00; }
+        .secondary-btn {
+            background-color: #333;
+            color: #ff8c00;
+            border: 1px solid #ff8c00;
+            margin-top: 5px;
+            padding: 8px;
+            font-size: 12px;
+        }
+        .secondary-btn:hover { background-color: #444; }
         #status-msg { text-align: center; margin-top: 15px; font-size: 14px; color: #ff8c00; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -61,11 +71,25 @@
             <input type="text" id="track-title" placeholder="e.g., Summer Anthem">
         </div>
 
-        <div class="form-group">
+        <!-- Artist Section -->
+        <div class="form-group" id="select-artist-section">
             <label>Select Artist</label>
             <select id="artist-select">
                 <option value="">Loading artists...</option>
             </select>
+            <button type="button" class="secondary-btn" onclick="toggleNewArtistForm()">+ Add New Artist</button>
+        </div>
+
+        <!-- New Artist Form (Hidden by default) -->
+        <div class="form-group hidden" id="new-artist-section">
+            <label>New Artist Name</label>
+            <input type="text" id="new-artist-name" placeholder="e.g., Lou Kain">
+            
+            <label style="margin-top: 10px;">AWeber Tag</label>
+            <input type="text" id="new-artist-tag" placeholder="e.g., lou-kain-fan">
+            
+            <button type="button" class="secondary-btn" style="background:#222; color:#fff; border-color:#555;" onclick="createNewArtist()">Save New Artist</button>
+            <button type="button" class="secondary-btn" onclick="toggleNewArtistForm()">Cancel</button>
         </div>
 
         <div class="form-group">
@@ -89,7 +113,7 @@
 
         // Load artists into dropdown on page load
         async function loadArtists() {
-            const { data, error } = await _supabase.from('artists').select('id, name');
+            const { data, error } = await _supabase.from('artists').select('id, name').order('name');
             const select = document.getElementById('artist-select');
             
             if (error) {
@@ -104,6 +128,54 @@
             });
         }
 
+        // Toggle between dropdown and new artist form
+        function toggleNewArtistForm() {
+            const selectSection = document.getElementById('select-artist-section');
+            const newSection = document.getElementById('new-artist-section');
+            
+            selectSection.classList.toggle('hidden');
+            newSection.classList.toggle('hidden');
+        }
+
+        // Create a new artist on the fly
+        async function createNewArtist() {
+            const name = document.getElementById('new-artist-name').value.trim();
+            const tag = document.getElementById('new-artist-tag').value.trim();
+            const statusMsg = document.getElementById('status-msg');
+
+            if (!name || !tag) {
+                alert('Please enter both an artist name and an AWeber tag.');
+                return;
+            }
+
+            statusMsg.innerText = 'Creating new artist...';
+
+            const { data, error } = await _supabase
+                .from('artists')
+                .insert([{ name: name, aweber_tag: tag }])
+                .select();
+
+            if (error) {
+                console.error('Error creating artist:', error);
+                statusMsg.innerText = 'Error: ' + error.message;
+                return;
+            }
+
+            statusMsg.innerText = 'Artist created successfully!';
+            
+            // Reload artists dropdown and automatically select the newly created artist
+            await loadArtists();
+            if (data && data.length > 0) {
+                document.getElementById('artist-select').value = data[0].id;
+            }
+
+            // Reset and toggle back to main view
+            document.getElementById('new-artist-name').value = '';
+            document.getElementById('new-artist-tag').value = '';
+            toggleNewArtistForm();
+            setTimeout(() => { statusMsg.innerText = ''; }, 3000);
+        }
+
         async function uploadTrack() {
             const title = document.getElementById('track-title').value;
             const artistId = document.getElementById('artist-select').value;
@@ -112,7 +184,7 @@
             const statusMsg = document.getElementById('status-msg');
 
             if (!title || !artistId || !audioFile) {
-                alert('Please fill out the title, artist, and select an audio file.');
+                alert('Please fill out the title, select an artist, and pick an audio file.');
                 return;
             }
 
@@ -127,7 +199,6 @@
 
                 if (audioError) throw audioError;
 
-                // Get Public URL for Audio
                 const { data: audioPublicUrl } = _supabase.storage
                     .from('audio-tracks')
                     .getPublicUrl(audioFileName);
