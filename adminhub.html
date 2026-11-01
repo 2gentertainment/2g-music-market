@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2G Entertainment - Admin Hub</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .admin-card {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            width: 380px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            text-align: center;
+        }
+        h2 { color: #ff8c00; margin-top: 0; font-size: 18px; margin-bottom: 20px; }
+        
+        /* Gateway & Dashboard sections */
+        .gateway-section, .dashboard-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .hidden { display: none !important; }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            background: #111;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 6px;
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 16px;
+            outline: none;
+        }
+        input[type="password"]:focus { border-color: #ff8c00; }
+
+        button {
+            background-color: #ff8c00;
+            color: #000;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #e07b00; }
+        
+        .secondary-btn {
+            background-color: #2a2a2a;
+            color: #fff;
+            border: 1px solid #444;
+        }
+        .secondary-btn:hover { background-color: #333; border-color: #ff8c00; }
+
+        #error-msg { color: #ff4d4d; font-size: 12px; min-height: 16px; margin: 0; }
+        .back-link { display: inline-block; margin-top: 15px; font-size: 12px; color: #888; text-decoration: none; }
+        .back-link:hover { color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-card">
+        <h2>2G Master Admin Hub</h2>
+
+        <!-- Password Gateway Screen -->
+        <div id="gateway-box" class="gateway-section">
+            <p style="font-size: 13px; color: #aaa; margin-top:0;">Enter admin password to access management tools.</p>
+            <input type="password" id="admin-pass" placeholder="Password..." onkeypress="handleKey(event)">
+            <button onclick="verifyPassword()">Unlock Hub</button>
+            <p id="error-msg"></p>
+        </div>
+
+        <!-- Unlocked Dashboard Suite -->
+        <div id="dashboard-box" class="dashboard-section hidden">
+            <button onclick="location.href='upload.html'">📤 Upload New Track</button>
+            <button class="secondary-btn" onclick="location.href='reorder.html'">⚡ Manage Catalog & Rotation</button>
+        </div>
+
+        <a href="index.html" class="back-link">← Return to Public Music Player</a>
+    </div>
+
+    <script>
+        // Set your master admin password here
+        const ADMIN_PASSWORD = "2gentertainment"; 
+
+        function verifyPassword() {
+            const inputVal = document.getElementById('admin-pass').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            if (inputVal === ADMIN_PASSWORD) {
+                // Save session state so you don't have to re-type it on every click within the tab
+                sessionStorage.setItem('2g_admin_auth', 'true');
+                showDashboard();
+            } else {
+                errorMsg.innerText = "Incorrect password. Try again.";
+                document.getElementById('admin-pass').value = '';
+            }
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter') verifyPassword();
+        }
+
+        function showDashboard() {
+            document.getElementById('gateway-box').classList.add('hidden');
+            document.getElementById('dashboard-box').classList.remove('hidden');
+        }
+
+        // Auto-unlock if already authenticated during this browser session
+        window.onload = function() {
+            if (sessionStorage.getItem('2g_admin_auth') === 'true') {
+                showDashboard();
+            }
+        };
+    </script>
+</body>
+</html>
