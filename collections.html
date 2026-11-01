@@ -112,13 +112,13 @@
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100vh;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             display: flex; justify-content: center; align-items: center;
-            z-index: 1000;
+            z-index: 9999;
         }
         .modal-card {
             background: #1e1e1e;
-            border: 1px solid #333;
+            border: 1px solid #444;
             border-radius: 12px;
             width: 420px;
             max-height: 80vh;
@@ -132,7 +132,7 @@
             margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;
         }
         .modal-header h3 { margin: 0; font-size: 16px; color: #ff8c00; }
-        .close-btn { background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; width: auto; padding: 0; margin: 0;}
+        .close-btn { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; width: auto; padding: 0; margin: 0;}
         
         .modal-track-list {
             overflow-y: auto;
@@ -201,7 +201,7 @@
     </div>
 
     <!-- Track Management Modal -->
-    <div id="track-modal" class="modal-overlay hidden" onclick="closeModalOnOutside(event)">
+    <div id="track-modal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-header">
                 <h3 id="modal-title">Manage Tracks</h3>
@@ -240,6 +240,8 @@
             const { data, error } = await _supabase.from('tracks').select('id, title, collection_id, artist_id, artists(name)').order('title');
             if (!error && data) {
                 allTracks = data;
+            } else if (error) {
+                console.error("Error loading tracks cache:", error.message);
             }
         }
 
@@ -265,6 +267,7 @@
                 const artistObj = artistsList.find(a => a.id === item.artist_id);
                 const subtitle = artistObj ? `${item.type} • ${artistObj.name}` : item.type;
                 const visibilityText = item.is_visible ? '👁️ Visible' : '🔒 Hidden';
+                const safeTitle = item.title.replace(/"/g, '&quot;').replace(/'/g, "&#39;");
 
                 const card = document.createElement('div');
                 card.className = 'collection-item';
@@ -274,9 +277,9 @@
                         <div>${subtitle}</div>
                     </div>
                     <div class="collection-actions">
-                        <button class="manage-btn small-btn" onclick="openTrackModal(${item.id}, '${item.title.replace(/'/g, "\\'")}')">Songs</button>
-                        <button class="secondary-btn small-btn" onclick="toggleVisibility(${item.id}, ${item.is_visible})">${visibilityText}</button>
-                        <button class="delete-btn small-btn" onclick="deleteCollection(${item.id})">Delete</button>
+                        <button type="button" class="manage-btn small-btn" onclick="openTrackModal(${item.id}, '${safeTitle}')">Songs</button>
+                        <button type="button" class="secondary-btn small-btn" onclick="toggleVisibility(${item.id}, ${item.is_visible})">${visibilityText}</button>
+                        <button type="button" class="delete-btn small-btn" onclick="deleteCollection(${item.id})">Delete</button>
                     </div>
                 `;
                 container.appendChild(card);
@@ -334,7 +337,6 @@
         async function deleteCollection(id) {
             if (!confirm('Are you sure you want to delete this collection?')) return;
 
-            // Unlink tracks first
             await _supabase.from('tracks').update({ collection_id: null }).eq('collection_id', id);
 
             const { error } = await _supabase
@@ -363,16 +365,12 @@
             activeCollectionId = null;
         }
 
-        function closeModalOnOutside(e) {
-            if (e.target.id === 'track-modal') closeTrackModal();
-        }
-
         async function renderModalTracks() {
-            await loadAllTracks(); // Refresh track list cache
+            await loadAllTracks(); 
             const container = document.getElementById('modal-tracks-container');
             container.innerHTML = '';
 
-            if (allTracks.length === 0) {
+            if (!allTracks || allTracks.length === 0) {
                 container.innerHTML = '<p style="text-align:center; color:#888; font-size:13px;">No tracks available in catalog.</p>';
                 return;
             }
@@ -390,8 +388,8 @@
                     </div>
                     <div>
                         ${isAssigned 
-                            ? `<button class="delete-btn small-btn" onclick="assignTrackToCollection(${track.id}, null)">Remove</button>`
-                            : `<button class="small-btn" style="background:#ff8c00; color:#000;" onclick="assignTrackToCollection(${track.id}, ${activeCollectionId})">Add</button>`
+                            ? `<button type="button" class="delete-btn small-btn" onclick="assignTrackToCollection(${track.id}, null)">Remove</button>`
+                            : `<button type="button" class="small-btn" style="background:#ff8c00; color:#000;" onclick="assignTrackToCollection(${track.id}, ${activeCollectionId})">Add</button>`
                         }
                     </div>
                 `;
