@@ -14,7 +14,7 @@
             height: 100dvh;
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            overflow: hidden; /* Locks outer page so it never weirdly scrolls */
             display: flex;
             justify-content: center;
         }
@@ -23,36 +23,37 @@
             background: #121212;
             width: 100%;
             max-width: 480px;
-            height: 100%;
+            height: 100dvh;
             box-sizing: border-box;
             padding: 16px 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            overflow-y: auto; /* Allows smooth scrolling of the whole card/tracklist view */
+            overflow: hidden; /* Keeps everything locked inside the app frame */
         }
 
         .player-header {
             text-align: center;
-            font-size: 12px;
+            font-size: 11px;
             letter-spacing: 2px;
             color: #666;
             text-transform: uppercase;
-            padding-top: 5px;
+            padding-top: 2px;
             flex-shrink: 0;
         }
 
-        /* Seamless Edge-to-Edge Artwork */
+        /* Balanced, Pro-Sized Square Artwork */
         .artwork-container {
-            width: 100%;
-            max-height: 35vh;
+            width: 180px;
+            height: 180px;
+            margin: 6px auto;
             border-radius: 12px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 8px 0;
             flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
         }
         .artwork-container img {
             width: 100%;
@@ -63,21 +64,21 @@
 
         .track-info {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
-        h3 { margin: 0 0 4px 0; font-size: 18px; color: #fff; font-weight: 700; }
+        h3 { margin: 0 0 2px 0; font-size: 17px; color: #fff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         p { margin: 0; font-size: 13px; color: #ff8c00; font-weight: 500; }
         
         /* Progress Bar Styles */
         .progress-container {
             width: 100%;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             flex-shrink: 0;
         }
         .progress-bar {
             width: 100%;
-            height: 6px;
+            height: 5px;
             -webkit-appearance: none;
             appearance: none;
             background: #333;
@@ -88,8 +89,8 @@
         .progress-bar::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: #ff8c00;
             cursor: pointer;
@@ -97,7 +98,7 @@
         .time-info {
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: 11px;
             color: #888;
             margin-top: 4px;
         }
@@ -105,7 +106,7 @@
         .action-section { 
             display: flex; 
             gap: 10px; 
-            margin-bottom: 12px; 
+            margin-bottom: 10px; 
             flex-shrink: 0;
         }
         .main-sub-btn {
@@ -138,7 +139,7 @@
         .sub-form {
             display: flex;
             gap: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             flex-shrink: 0;
         }
         .sub-form input {
@@ -161,24 +162,28 @@
             font-size: 13px;
         }
 
-        /* Inline Scrollable Playlist Section */
+        /* Isolated Scrollable Playlist Container (The independent scroll drawer) */
         .inline-playlist-section {
-            background: #181818;
-            border: 1px solid #2a2a2a;
+            background: #161616;
+            border: 1px solid #262626;
             border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 15px;
-            max-height: 180px;
-            overflow-y: auto;
-            flex-shrink: 0;
+            padding: 10px;
+            margin-bottom: 12px;
+            flex: 1; /* Automatically takes remaining vertical space without pushing buttons */
+            min-height: 100px;
+            overflow-y: auto; /* Scrollable independently */
         }
         .inline-playlist-header {
-            font-size: 11px;
+            font-size: 10px;
             letter-spacing: 1.5px;
-            color: #888;
+            color: #777;
             text-transform: uppercase;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: bold;
+            position: sticky;
+            top: 0;
+            background: #161616;
+            padding-bottom: 4px;
         }
         .inline-tracks-list {
             display: flex;
@@ -186,16 +191,16 @@
             gap: 6px;
         }
 
-        /* Playlist Item Design (Shared for inline & modal) */
+        /* Playlist Item Design */
         .playlist-item {
-            background: #222;
-            padding: 8px 10px;
+            background: #202020;
+            padding: 6px 10px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 10px;
             cursor: pointer;
-            border: 1px solid #333;
+            border: 1px solid #2e2e2e;
             transition: background 0.2s, border-color 0.2s;
             text-align: left;
         }
@@ -208,27 +213,31 @@
             border-color: #ff8c00;
         }
         .playlist-item img {
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            border-radius: 5px;
             object-fit: cover;
+            flex-shrink: 0;
         }
         .playlist-item-info {
             flex: 1;
             overflow: hidden;
         }
         .playlist-item-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             color: #fff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         .playlist-item-artist {
             font-size: 11px;
             color: #ff8c00;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Modal Drawer Styles */
@@ -306,20 +315,20 @@
             padding-right: 4px;
         }
 
-        /* Player Controls */
+        /* Player Controls (Locked Thumb-Zone Layout) */
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 10px;
+            padding-bottom: 6px;
             flex-shrink: 0;
         }
         .controls button {
             background: #1e1e1e;
             border: none;
             color: #aaa;
-            width: 42px;
-            height: 42px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -338,8 +347,8 @@
         .controls button#play-pause-btn {
             background: #ff8c00;
             color: #000;
-            width: 56px;
-            height: 56px;
+            width: 54px;
+            height: 54px;
         }
         .controls button#play-pause-btn:hover { background: #e07b00; color: #000; }
         
@@ -351,6 +360,7 @@
     <div class="player-card">
         <div class="player-header">2G Entertainment</div>
 
+        <!-- Balanced Square Artwork Header -->
         <div class="artwork-container">
             <img id="track-artwork" src="" alt="Artwork">
         </div>
@@ -381,7 +391,7 @@
             </div>
         </div>
 
-        <!-- Inline Scrollable Playlist Section (Apple Music / Airbit Style Drawer) -->
+        <!-- Independent Scrollable Inline Playlist Drawer -->
         <div class="inline-playlist-section">
             <div class="inline-playlist-header">Up Next / Catalog</div>
             <div id="inline-tracks-container" class="inline-tracks-list">
@@ -389,7 +399,7 @@
             </div>
         </div>
 
-        <!-- Player Controls (Keeping Thumb-Optimized Play Button Layout) -->
+        <!-- Player Controls (Thumb-Optimized Layout) -->
         <div class="controls">
             <button id="shuffle-btn" onclick="toggleShuffle()" title="Shuffle">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
@@ -404,8 +414,8 @@
             </button>
             
             <button id="play-pause-btn" onclick="togglePlay()" title="Play/Pause">
-                <svg id="play-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                <svg id="pause-icon" class="hidden" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg id="pause-icon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
             </button>
 
             <button onclick="nextTrack()" title="Next">
@@ -473,7 +483,7 @@
             if (data && data.length > 0) {
                 playlist = data;
                 loadTrackData(0);
-                renderInlinePlaylist(); // Populates the scrollable drawer on the main page
+                renderInlinePlaylist();
             } else {
                 document.getElementById('track-title').innerText = 'No tracks found';
             }
@@ -495,7 +505,7 @@
             playIcon.classList.remove('hidden');
             pauseIcon.classList.add('hidden');
             
-            highlightActiveTracks(); // Updates active state across both views
+            renderInlinePlaylist();
         }
 
         function playTrack(index) {
@@ -514,7 +524,7 @@
                 updatePlayButton();
             });
 
-            highlightActiveTracks();
+            renderInlinePlaylist();
         }
 
         function togglePlay() {
@@ -633,7 +643,6 @@
             playlist.forEach((track, index) => {
                 const item = document.createElement('div');
                 item.className = `playlist-item ${index === currentIndex ? 'active-track' : ''}`;
-                item.id = `inline-track-${index}`;
                 item.onclick = () => playTrack(index);
 
                 const artSrc = track.artwork_url || '';
@@ -648,15 +657,6 @@
                 `;
                 container.appendChild(item);
             });
-        }
-
-        /* Highlight Active Track across both Inline & Modal views */
-        function highlightActiveTracks() {
-            document.querySelectorAll('.playlist-item').forEach((el, index) => {
-                // Determine active status based on loop index check or matching IDs
-                // Simplified: re-render inline or toggle class
-            });
-            renderInlinePlaylist();
         }
 
         /* Streaming Modal Drawer Logic */
