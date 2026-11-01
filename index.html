@@ -847,7 +847,7 @@
             }
         });
 
-        async function submitSubscriber() {
+        function submitSubscriber() {
             const emailInput = document.getElementById('subscriber-email');
             const email = emailInput.value.trim();
             
@@ -857,33 +857,66 @@
             }
 
             const currentTrack = activePlaylist[currentIndex];
-            const tag = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
+            const rawTagString = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
             const listname = 'awlist6783124';
 
-            const formData = new URLSearchParams();
-            formData.append('listname', listname);
-            formData.append('email', email);
-            formData.append('ad_tag', tag);
-            formData.append('tag', tag);
-            formData.append('tags', tag);
-            formData.append('meta_ad_tracking', '2G_PWA_Player');
-            formData.append('meta_message', '1');
-            formData.append('meta_required', 'email');
+            // Construct a native hidden form submission to bypass CORS fetch restrictions
+            const form = document.createElement('form');
+            form.action = 'https://www.aweber.com/scripts/addlead.pl';
+            form.method = 'POST';
+            form.target = 'hidden-aweber-iframe';
+            form.style.display = 'none';
 
-            try {
-                await fetch('https://www.aweber.com/scripts/addlead.pl', {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: formData
-                });
+            const fields = {
+                'listname': listname,
+                'email': email,
+                'meta_ad_tracking': '2G_PWA_Player',
+                'meta_message': '1',
+                'meta_required': 'email'
+            };
 
-                alert(`Thanks for joining! Tagged as: ${tag}`);
-                emailInput.value = '';
-                hideSubscribeForm();
-            } catch (err) {
-                console.error('AWeber submission error:', err);
-                alert('Something went wrong. Please try again.');
+            for (const [key, value] of Object.entries(fields)) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
             }
+
+            // Split comma-separated tags and strictly trim leading/trailing whitespace from every individual tag
+            if (rawTagString) {
+                const tagsArray = rawTagString.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                tagsArray.forEach(cleanTag => {
+                    const tagInput1 = document.createElement('input');
+                    tagInput1.type = 'hidden';
+                    tagInput1.name = 'tag';
+                    tagInput1.value = cleanTag;
+                    form.appendChild(tagInput1);
+
+                    const tagInput2 = document.createElement('input');
+                    tagInput2.type = 'hidden';
+                    tagInput2.name = 'ad_tag';
+                    tagInput2.value = cleanTag;
+                    form.appendChild(tagInput2);
+                });
+            }
+
+            let iframe = document.getElementById('hidden-aweber-iframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'hidden-aweber-iframe';
+                iframe.name = 'hidden-aweber-iframe';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+
+            alert(`Thanks for joining! Tagged as: ${rawTagString}`);
+            emailInput.value = '';
+            hideSubscribeForm();
         }
 
         function renderInlinePlaylist() {
