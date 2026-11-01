@@ -502,7 +502,7 @@
         let isRepeated = false;
         let currentFilterType = 'all'; 
         let currentFilterValue = null; 
-        let currentPlayingTrackId = null; // Track currently active audio ID
+        let currentPlayingTrackId = null;
 
         const audioElement = document.getElementById('audio-element');
         const playIcon = document.getElementById('play-icon');
@@ -818,7 +818,6 @@
 
             activePlaylist.forEach((track, index) => {
                 const item = document.createElement('div');
-                // Highlight active track if it's currently playing in this list
                 const isActive = track.id === currentPlayingTrackId;
                 item.className = `playlist-item ${isActive ? 'active-track' : ''}`;
                 item.onclick = () => playTrack(index);
@@ -895,7 +894,7 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
-            document.getElementById('store-modal').classList.add('hidden');
+            document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
         function closeStoreModalOnOutside(e) { if (e.target.id === 'store-modal') closeStoreModal(); }
