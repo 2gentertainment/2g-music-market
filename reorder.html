@@ -298,6 +298,11 @@
             statusMsg.innerText = isChecked ? 'Weekly Auto-Shuffle enabled.' : 'Weekly Auto-Shuffle disabled.';
             setTimeout(() => { statusMsg.innerText = ''; }, 2500);
         }
+        // Security Guard: Kick back to admin hub if not authenticated
+if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
+    window.location.href = 'https://2gentertainment.github.io/2g-music-market/adminhub.html';
+}
+
 
         loadAdminCatalog();
     </script>
