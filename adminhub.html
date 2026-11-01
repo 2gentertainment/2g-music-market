@@ -19,14 +19,13 @@
             background: #1e1e1e;
             padding: 30px;
             border-radius: 12px;
-            width: 380px;
+            width: 400px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             border: 1px solid #333;
             text-align: center;
         }
         h2 { color: #ff8c00; margin-top: 0; font-size: 18px; margin-bottom: 20px; }
         
-        /* Gateway & Dashboard sections */
         .gateway-section, .dashboard-section {
             display: flex;
             flex-direction: column;
@@ -52,12 +51,16 @@
             background-color: #ff8c00;
             color: #000;
             border: none;
-            padding: 12px;
+            padding: 12px 16px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             transition: background 0.2s;
         }
         button:hover { background-color: #e07b00; }
@@ -68,6 +71,13 @@
             border: 1px solid #444;
         }
         .secondary-btn:hover { background-color: #333; border-color: #ff8c00; }
+
+        /* SVG Icon styling */
+        button svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
 
         #error-msg { color: #ff4d4d; font-size: 12px; min-height: 16px; margin: 0; }
         .back-link { display: inline-block; margin-top: 15px; font-size: 12px; color: #888; text-decoration: none; }
@@ -83,29 +93,38 @@
         <div id="gateway-box" class="gateway-section">
             <p style="font-size: 13px; color: #aaa; margin-top:0;">Enter admin password to access management tools.</p>
             <input type="password" id="admin-pass" placeholder="Password..." onkeypress="handleKey(event)">
-            <button onclick="verifyPassword()">Unlock Hub</button>
+            <button onclick="verifyPassword()">
+                <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                Unlock Hub
+            </button>
             <p id="error-msg"></p>
         </div>
 
         <!-- Unlocked Dashboard Suite -->
         <div id="dashboard-box" class="dashboard-section hidden">
-            <button onclick="location.href='upload.html'">📤 Upload New Track</button>
-            <button class="secondary-btn" onclick="location.href='reorder.html'">⚡ Manage Catalog & Rotation</button>
+            <!-- Corrected upload link with repo subfolder -->
+            <button onclick="location.href='https://2gentertainment.github.io/2g-music-market/admin.html'">
+                <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                Upload New Track
+            </button>
+            <!-- Catalog Reorder Link -->
+            <button class="secondary-btn" onclick="location.href='reorder.html'">
+                <svg viewBox="0 0 24 24"><path d="M3 15h18v-2H3v2zm0 4h18v-2H3v2zm0-8h18V9H3v2zm0-6v2h18V5H3z"/></svg>
+                Manage Catalog & Rotation
+            </button>
         </div>
 
         <a href="index.html" class="back-link">← Return to Public Music Player</a>
     </div>
 
     <script>
-        // Set your master admin password here
-        const ADMIN_PASSWORD = "Ififailwefall2!"; 
+        const ADMIN_PASSWORD = "2gentertainment";[span_0](start_span)[span_0](end_span)
 
         function verifyPassword() {
             const inputVal = document.getElementById('admin-pass').value;
             const errorMsg = document.getElementById('error-msg');
 
             if (inputVal === ADMIN_PASSWORD) {
-                // Save session state so you don't have to re-type it on every click within the tab
                 sessionStorage.setItem('2g_admin_auth', 'true');
                 showDashboard();
             } else {
@@ -123,7 +142,6 @@
             document.getElementById('dashboard-box').classList.remove('hidden');
         }
 
-        // Auto-unlock if already authenticated during this browser session
         window.onload = function() {
             if (sessionStorage.getItem('2g_admin_auth') === 'true') {
                 showDashboard();
