@@ -497,10 +497,9 @@
         let currentIndex = 0;
         let isShuffled = false;
         let isRepeated = false;
-        let currentFilterType = 'all'; // 'all', 'artist', 'playlist'
-        let currentFilterValue = null; // artist name or collection id
-        let currentArtistSubFilter = 'all'; // 'all', 'singles', 'albums'
-        let activeArtistData = null;
+        let currentFilterType = 'all'; 
+        let currentFilterValue = null; 
+        let currentArtistSubFilter = 'all'; 
 
         const audioElement = document.getElementById('audio-element');
         const playIcon = document.getElementById('play-icon');
@@ -593,30 +592,26 @@
             } else if (type === 'playlist') {
                 activePlaylist = masterPlaylist.filter(track => track.collection_id === value);
             } else if (type === 'artist') {
-                // Check if artist has both singles (collection_id is null) and albums (collection_id points to an album collection)
                 const artistTracks = masterPlaylist.filter(track => track.artists && track.artists.id === value);
                 const artistAlbums = collectionsList.filter(col => col.artist_id === value && col.type === 'album');
+                
                 const hasSingles = artistTracks.some(t => !t.collection_id);
                 const hasAlbums = artistAlbums.length > 0;
 
+                activePlaylist = artistTracks;
+
                 if (hasSingles && hasAlbums) {
-                    // Show context-aware sub-menu ("Singles" & "Albums")
                     submenuBar.classList.remove('hidden');
                     submenuBar.innerHTML = `
                         <div class="sub-tab active-sub" onclick="setArtistSubFilter('all', this)">All</div>
                         <div class="sub-tab" onclick="setArtistSubFilter('singles', this)">Singles</div>
                         <div class="sub-tab" onclick="setArtistSubFilter('albums', this)">Albums</div>
                     `;
-                    activePlaylist = artistTracks;
                 } else if (hasAlbums && !hasSingles) {
-                    // Only albums available
                     submenuBar.classList.remove('hidden');
                     submenuBar.innerHTML = `<div class="sub-tab active-sub" onclick="setArtistSubFilter('albums', this)">Albums</div>`;
                     currentArtistSubFilter = 'albums';
                     activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => a.id === t.collection_id));
-                } else {
-                    // Only singles available, skip sub-menu completely!
-                    activePlaylist = artistTracks.filter(t => !t.collection_id);
                 }
             }
 
@@ -866,7 +861,6 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
-            document.getElementById('store-modal').classList.add('hidden'); // default state check
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
