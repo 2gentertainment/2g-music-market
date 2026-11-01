@@ -190,7 +190,7 @@
 
             statusMsg.innerText = 'Uploading audio file...';
 
-            // 1. Upload Audio
+            // 1. Upload Audio using 'audio-tracks' bucket
             const audioFileName = `${Date.now()}_${audioFile.name}`;
             const { data: audioData, error: audioError } = await _supabase.storage
                 .from('audio-tracks')
@@ -224,7 +224,7 @@
 
             statusMsg.innerText = 'Saving to database...';
 
-            // 3. Insert Track Record with collection_id
+            // 3. Insert Track Record with collection_id (blank/null for standalone single)
             const { error: dbError } = await _supabase.from('tracks').insert([{
                 title: title,
                 artist_id: parseInt(artistId),
