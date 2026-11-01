@@ -25,10 +25,11 @@
             max-width: 480px;
             height: 100%;
             box-sizing: border-box;
-            padding: 20px 24px;
+            padding: 16px 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            overflow-y: auto; /* Allows smooth scrolling of the whole card/tracklist view */
         }
 
         .player-header {
@@ -38,38 +39,41 @@
             color: #666;
             text-transform: uppercase;
             padding-top: 5px;
+            flex-shrink: 0;
         }
 
         /* Seamless Edge-to-Edge Artwork */
         .artwork-container {
             width: 100%;
-            flex: 1;
-            max-height: 42vh;
+            max-height: 35vh;
             border-radius: 12px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 10px 0;
+            margin: 8px 0;
+            flex-shrink: 0;
         }
         .artwork-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Fills edge-to-edge cleanly with zero black borders */
+            object-fit: cover;
             display: block;
         }
 
         .track-info {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
         }
-        h3 { margin: 0 0 4px 0; font-size: 20px; color: #fff; font-weight: 700; }
-        p { margin: 0; font-size: 14px; color: #ff8c00; font-weight: 500; }
+        h3 { margin: 0 0 4px 0; font-size: 18px; color: #fff; font-weight: 700; }
+        p { margin: 0; font-size: 13px; color: #ff8c00; font-weight: 500; }
         
         /* Progress Bar Styles */
         .progress-container {
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
         }
         .progress-bar {
             width: 100%;
@@ -95,24 +99,25 @@
             justify-content: space-between;
             font-size: 12px;
             color: #888;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .action-section { 
             display: flex; 
             gap: 10px; 
-            margin-bottom: 15px; 
+            margin-bottom: 12px; 
+            flex-shrink: 0;
         }
         .main-sub-btn {
             background-color: #ff8c00;
             color: #000;
             border: none;
-            padding: 12px;
+            padding: 10px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
             flex: 1;
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 0.5px;
         }
         .main-sub-btn:hover { background-color: #e07b00; }
@@ -121,11 +126,11 @@
             background-color: #2a2a2a;
             color: #fff;
             border: 1px solid #444;
-            padding: 12px 16px;
+            padding: 10px 14px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.2s;
         }
         .stream-trigger-btn:hover { background-color: #3a3a3a; border-color: #ff8c00; }
@@ -133,31 +138,100 @@
         .sub-form {
             display: flex;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
         }
         .sub-form input {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border-radius: 10px;
             border: 1px solid #444;
             background: #1a1a1a;
             color: #fff;
-            font-size: 16px; /* Prevents mobile auto-zoom */
-            transform: scale(1);
-            touch-action: manipulation;
+            font-size: 16px;
         }
         .sub-form button {
             background-color: #ff8c00;
             color: #000;
             border: none;
-            padding: 0 18px;
+            padding: 0 16px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        /* Modal Drawer Common Styles */
+        /* Inline Scrollable Playlist Section */
+        .inline-playlist-section {
+            background: #181818;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            max-height: 180px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .inline-playlist-header {
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .inline-tracks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* Playlist Item Design (Shared for inline & modal) */
+        .playlist-item {
+            background: #222;
+            padding: 8px 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border: 1px solid #333;
+            transition: background 0.2s, border-color 0.2s;
+            text-align: left;
+        }
+        .playlist-item:hover {
+            background: #2a2a2a;
+            border-color: #555;
+        }
+        .playlist-item.active-track {
+            background: #2a1f12;
+            border-color: #ff8c00;
+        }
+        .playlist-item img {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+        .playlist-item-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        .playlist-item-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+        .playlist-item-artist {
+            font-size: 11px;
+            color: #ff8c00;
+        }
+
+        /* Modal Drawer Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -177,7 +251,7 @@
             max-width: 480px;
             border-top-left-radius: 20px;
             border-top-right-radius: 20px;
-            padding: 24px 20px 40px 20px;
+            padding: 20px 20px 30px 20px;
             box-sizing: border-box;
             border-top: 1px solid #333;
             text-align: center;
@@ -191,31 +265,24 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
-        .modal-header h4 { margin: 0; font-size: 16px; color: #fff; letter-spacing: 0.5px; }
-        .close-modal-btn {
-            background: none;
-            border: none;
-            color: #aaa;
-            font-size: 20px;
-            cursor: pointer;
-        }
+        .modal-header h4 { margin: 0; font-size: 15px; color: #fff; letter-spacing: 0.5px; }
+        .close-modal-btn { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; }
 
-        /* Streaming Links Grid */
         .stream-links-grid {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         .stream-link-item {
             background: #252525;
             color: #fff;
             text-decoration: none;
-            padding: 14px;
+            padding: 12px;
             border-radius: 10px;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -225,7 +292,6 @@
         }
         .stream-link-item:hover { background: #333; border-color: #ff8c00; }
 
-        /* Playlist Drawer Styles */
         .playlist-modal-content {
             max-height: 70vh;
             display: flex;
@@ -239,63 +305,21 @@
             max-height: 50vh;
             padding-right: 4px;
         }
-        .playlist-item {
-            background: #222;
-            padding: 10px 12px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            border: 1px solid #333;
-            transition: background 0.2s, border-color 0.2s;
-            text-align: left;
-        }
-        .playlist-item:hover {
-            background: #2a2a2a;
-            border-color: #555;
-        }
-        .playlist-item.active-track {
-            background: #2a1f12;
-            border-color: #ff8c00;
-        }
-        .playlist-item img {
-            width: 44px;
-            height: 44px;
-            border-radius: 6px;
-            object-fit: cover;
-        }
-        .playlist-item-info {
-            flex: 1;
-            overflow: hidden;
-        }
-        .playlist-item-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 2px;
-        }
-        .playlist-item-artist {
-            font-size: 12px;
-            color: #ff8c00;
-        }
 
         /* Player Controls */
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 20px;
+            padding-bottom: 10px;
+            flex-shrink: 0;
         }
         .controls button {
             background: #1e1e1e;
             border: none;
             color: #aaa;
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -314,8 +338,8 @@
         .controls button#play-pause-btn {
             background: #ff8c00;
             color: #000;
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
         }
         .controls button#play-pause-btn:hover { background: #e07b00; color: #000; }
         
@@ -357,13 +381,21 @@
             </div>
         </div>
 
-        <!-- Player Controls -->
+        <!-- Inline Scrollable Playlist Section (Apple Music / Airbit Style Drawer) -->
+        <div class="inline-playlist-section">
+            <div class="inline-playlist-header">Up Next / Catalog</div>
+            <div id="inline-tracks-container" class="inline-tracks-list">
+                <!-- Dynamically populated inline tracks appear here -->
+            </div>
+        </div>
+
+        <!-- Player Controls (Keeping Thumb-Optimized Play Button Layout) -->
         <div class="controls">
             <button id="shuffle-btn" onclick="toggleShuffle()" title="Shuffle">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
             </button>
 
-            <button id="playlist-btn" onclick="openPlaylistModal()" title="Playlist">
+            <button id="playlist-btn" onclick="openPlaylistModal()" title="Full Playlist View">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
             </button>
 
@@ -393,22 +425,18 @@
                 <h4>LISTEN ON</h4>
                 <button class="close-modal-btn" onclick="closeStreamModal()">&times;</button>
             </div>
-            <div id="stream-links-container" class="stream-links-grid">
-                <!-- Dynamically populated streaming links appear here -->
-            </div>
+            <div id="stream-links-container" class="stream-links-grid"></div>
         </div>
     </div>
 
-    <!-- Playlist Drawer Modal -->
+    <!-- Popup Playlist Drawer Modal (Triggered by button) -->
     <div id="playlist-modal" class="modal-overlay hidden" onclick="closePlaylistModalOnOutside(event)">
         <div class="modal-content playlist-modal-content">
             <div class="modal-header">
                 <h4>PLAYLIST (<span id="playlist-count">0</span>)</h4>
                 <button class="close-modal-btn" onclick="closePlaylistModal()">&times;</button>
             </div>
-            <div id="playlist-tracks-container" class="playlist-tracks-list">
-                <!-- Dynamically populated track rows appear here -->
-            </div>
+            <div id="playlist-tracks-container" class="playlist-tracks-list"></div>
         </div>
     </div>
 
@@ -431,27 +459,6 @@
         const currentTimeEl = document.getElementById('current-time');
         const totalDurationEl = document.getElementById('total-duration');
 
-        // Setup Media Session API for iOS/Android Lock Screen & Control Center
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
-            navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
-            navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
-            navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
-        }
-
-        function updateMediaSession(track) {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: track.title,
-                    artist: track.artists ? track.artists.name : '2G Entertainment',
-                    album: '2G Entertainment Release',
-                    artwork: [
-                        { src: track.artwork_url || '', sizes: '512x512', type: 'image/jpeg' }
-                    ]
-                });
-            }
-        }
-
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
@@ -466,6 +473,7 @@
             if (data && data.length > 0) {
                 playlist = data;
                 loadTrackData(0);
+                renderInlinePlaylist(); // Populates the scrollable drawer on the main page
             } else {
                 document.getElementById('track-title').innerText = 'No tracks found';
             }
@@ -484,9 +492,10 @@
             currentTimeEl.innerText = "0:00";
             totalDurationEl.innerText = "0:00";
             
-            updateMediaSession(track);
             playIcon.classList.remove('hidden');
             pauseIcon.classList.add('hidden');
+            
+            highlightActiveTracks(); // Updates active state across both views
         }
 
         function playTrack(index) {
@@ -498,14 +507,14 @@
             document.getElementById('track-artwork').src = track.artwork_url || '';
             
             audioElement.src = track.audio_file_path;
-            updateMediaSession(track);
-
             audioElement.play().then(() => {
                 updatePlayButton();
             }).catch(err => {
                 console.log("Autoplay waiting for user interaction");
                 updatePlayButton();
             });
+
+            highlightActiveTracks();
         }
 
         function togglePlay() {
@@ -616,11 +625,45 @@
             document.getElementById('action-row').classList.remove('hidden');
         }
 
+        /* Render Inline Scrollable Playlist Drawer */
+        function renderInlinePlaylist() {
+            const container = document.getElementById('inline-tracks-container');
+            container.innerHTML = '';
+
+            playlist.forEach((track, index) => {
+                const item = document.createElement('div');
+                item.className = `playlist-item ${index === currentIndex ? 'active-track' : ''}`;
+                item.id = `inline-track-${index}`;
+                item.onclick = () => playTrack(index);
+
+                const artSrc = track.artwork_url || '';
+                const artistName = track.artists ? track.artists.name : '2G Entertainment';
+
+                item.innerHTML = `
+                    <img src="${artSrc}" alt="Art">
+                    <div class="playlist-item-info">
+                        <div class="playlist-item-title">${track.title}</div>
+                        <div class="playlist-item-artist">${artistName}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        /* Highlight Active Track across both Inline & Modal views */
+        function highlightActiveTracks() {
+            document.querySelectorAll('.playlist-item').forEach((el, index) => {
+                // Determine active status based on loop index check or matching IDs
+                // Simplified: re-render inline or toggle class
+            });
+            renderInlinePlaylist();
+        }
+
         /* Streaming Modal Drawer Logic */
         function openStreamModal() {
             const track = playlist[currentIndex];
             const container = document.getElementById('stream-links-container');
-            container.innerHTML = ''; // Clear previous links
+            container.innerHTML = '';
 
             const platforms = [
                 { name: 'Apple Music', url: track.apple_music_url },
@@ -631,7 +674,6 @@
             ];
 
             let validLinksCount = 0;
-
             platforms.forEach(platform => {
                 if (platform.url && platform.url.trim() !== '') {
                     validLinksCount++;
@@ -656,12 +698,10 @@
         }
 
         function closeStreamModalOnOutside(event) {
-            if (event.target.id === 'stream-modal') {
-                closeStreamModal();
-            }
+            if (event.target.id === 'stream-modal') closeStreamModal();
         }
 
-        /* Playlist Drawer Modal Logic */
+        /* Popup Playlist Modal Drawer Logic */
         function openPlaylistModal() {
             const container = document.getElementById('playlist-tracks-container');
             const countEl = document.getElementById('playlist-count');
@@ -697,9 +737,7 @@
         }
 
         function closePlaylistModalOnOutside(event) {
-            if (event.target.id === 'playlist-modal') {
-                closePlaylistModal();
-            }
+            if (event.target.id === 'playlist-modal') closePlaylistModal();
         }
 
         loadTracks();
