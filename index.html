@@ -598,9 +598,11 @@
                 const hasSingles = artistTracks.some(t => !t.collection_id);
                 const hasAlbums = artistAlbums.length > 0;
 
+                // Default initial view when clicking artist tab: show ALL their tracks
                 activePlaylist = artistTracks;
 
                 if (hasSingles && hasAlbums) {
+                    // Show sub-menu allowing user to toggle between All, Singles, and Albums
                     submenuBar.classList.remove('hidden');
                     submenuBar.innerHTML = `
                         <div class="sub-tab active-sub" onclick="setArtistSubFilter('all', this)">All</div>
@@ -612,6 +614,9 @@
                     submenuBar.innerHTML = `<div class="sub-tab active-sub" onclick="setArtistSubFilter('albums', this)">Albums</div>`;
                     currentArtistSubFilter = 'albums';
                     activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => a.id === t.collection_id));
+                } else if (hasSingles && !hasAlbums) {
+                    // Only singles exist, no sub-menu needed, showing singles only
+                    activePlaylist = artistTracks.filter(t => !t.collection_id);
                 }
             }
 
@@ -633,8 +638,10 @@
             if (subType === 'all') {
                 activePlaylist = artistTracks;
             } else if (subType === 'singles') {
+                // Strictly show only standalone singles (no collection assigned)
                 activePlaylist = artistTracks.filter(t => !t.collection_id);
             } else if (subType === 'albums') {
+                // Strictly show only tracks belonging to this artist's albums
                 activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => a.id === t.collection_id));
             }
 
