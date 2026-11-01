@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2G Entertainment - Admin Upload Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // Security Guard: Kick back to admin hub if not authenticated
+        if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
+            window.location.href = 'https://2gentertainment.github.io/2g-music-market/adminhub.html';
+        }
+
+        const SUPABASE_URL = 'https://chhwujiajdhaihupvuix.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // ... rest of your functions (loadArtists, uploadTrack, etc.) ...
+    </script>
+    
     <style>
         body {
             background-color: #121212;
@@ -309,7 +323,6 @@
                 statusMsg.innerText = 'Error: ' + err.message;
             }
         }
-
         loadArtists();
     </script>
 </body>
