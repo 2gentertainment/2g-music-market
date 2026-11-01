@@ -167,7 +167,7 @@
                 return;
             }
 
-            localCatalog = data ||chter = [];
+            localCatalog = data || [];
             renderTrackList();
             checkAutoShuffleStatus();
         }
@@ -187,7 +187,7 @@
                         <div>${track.title}</div>
                         <div style="font-size:11px; color:#ff8c00; font-weight:normal;">${artistName}</div>
                     </div>
-                    <input type="number" value="${index + 1}" data-id="${track.id}" class="order-input" min="1">
+                    <input type="number" value="${track.sort_order || (index + 1)}" data-id="${track.id}" class="order-input" min="1">
                 `;
                 container.appendChild(row);
             });
@@ -199,6 +199,15 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [localCatalog[i], localCatalog[j]] = [localCatalog[j], localCatalog[i]];
             }
+            // Update input sequence values visually to match the new random array order
+            const inputs = document.querySelectorAll('.order-input');
+            inputs.forEach((input, index) => {
+                const trackId = input.getAttribute('data-id');
+                const matchedTrack = localCatalog.find(t => t.id === trackId);
+                if (matchedTrack) {
+                    input.value = index + 1;
+                }
+            });
             renderTrackList();
             document.getElementById('status-msg').innerText = 'Catalog shuffled! Click "Save New Order" to commit.';
         }
@@ -208,10 +217,11 @@
             const statusMsg = document.getElementById('status-msg');
             statusMsg.innerText = 'Saving order...';
 
-            const inputs = document.querySelectorAll('.order-input');
+            const rows = document.querySelectorAll('.track-row');
             let updates = [];
 
-            inputs.forEach((input, index) => {
+            rows.forEach((row, index) => {
+                const input = row.querySelector('.order-input');
                 const trackId = input.getAttribute('data-id');
                 const newOrder = parseInt(input.value) || (index + 1);
                 updates.push(_supabase.from('tracks').update({ sort_order: newOrder }).eq('id', trackId));
@@ -228,7 +238,7 @@
             }
         }
 
-        // Handle Auto-Shuffle weekly setting (saved locally or to config)
+        // Handle Auto-Shuffle weekly setting
         function checkAutoShuffleStatus() {
             const isAuto = localStorage.getItem('2g_auto_shuffle') === 'true';
             document.getElementById('auto-shuffle-toggle').checked = isAuto;
