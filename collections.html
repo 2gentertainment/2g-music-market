@@ -77,7 +77,7 @@
         .btn-delete { background: #3a1515; color: #ff5252; border: 1px solid #552222; }
         .btn-delete:hover { background: #521a1a; }
 
-        /* Modal Overlay for Track Reordering */
+        /* Modal Overlay for Track Management */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100vh;
@@ -101,19 +101,27 @@
         .close-btn { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; }
         .modal-instructions { font-size: 12px; color: #888; margin-bottom: 12px; text-align: center; }
 
+        .add-track-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .add-track-row select { flex: 1; }
+        .add-track-row button { width: auto; padding: 10px 14px; margin-top: 0; }
+
         .track-list-box {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 6px;
-            max-height: 50vh;
+            max-height: 40vh;
             padding-right: 4px;
             margin-bottom: 15px;
         }
         .track-drag-card {
             background: #252525;
-            padding: 10px 12px;
+            padding: 8px 12px;
             border-radius: 6px;
             display: flex;
             align-items: center;
@@ -129,6 +137,8 @@
         .track-drag-info { flex: 1; overflow: hidden; }
         .track-drag-title { font-size: 12px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .drag-handle { color: #555; font-size: 14px; cursor: grab; }
+        .btn-remove-track { background: #3a1515; color: #ff5252; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+        .btn-remove-track:hover { background: #521a1a; }
 
         .link-back { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #888; text-decoration: none; }
         .link-back:hover { color: #fff; }
@@ -173,18 +183,26 @@
         <a href="adminhub.html" class="link-back">← Back to Master Admin Hub</a>
     </div>
 
-    <!-- Reorder Modal Popup -->
+    <!-- Reorder & Add Songs Modal Popup -->
     <div id="reorder-modal" class="modal-overlay hidden" onclick="closeReorderModalOnOutside(event)">
         <div class="modal-card">
             <div class="modal-header">
                 <h3 id="modal-album-title">Manage Tracks</h3>
                 <button class="close-btn" onclick="closeReorderModal()">&times;</button>
             </div>
-            <p class="modal-instructions">Drag and drop tracks to reorder them within this collection. Changes save automatically.</p>
+            <p class="modal-instructions">Drag and drop tracks to reorder. Changes save automatically.</p>
             
+            <!-- Add Song to Collection Row -->
+            <div class="add-track-row">
+                <select id="available-tracks-select">
+                    <option value="">-- Select track to add --</option>
+                </select>
+                <button onclick="addTrackToCollection()">Add Song</button>
+            </div>
+
             <div id="modal-track-list" class="track-list-box"></div>
             
-            <button onclick="saveCollectionOrder()">💾 Save New Order</button>
+            <button onclick="saveCollectionOrder()">💾 Save Order</button>
         </div>
     </div>
 
@@ -198,6 +216,7 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let collectionsList = [];
+        let allMasterTracks = [];
         let activeCollectionId = null;
         let activeCollectionTracks = [];
         let draggedIndex = null;
@@ -205,12 +224,14 @@
         async function init() {
             await loadArtists();
             await loadCollections();
+            await loadAllTracks();
         }
 
         async function loadArtists() {
             const { data, error } = await _supabase.from('artists').select('id, name').order('name');
             if (!error && data) {
                 const select = document.getElementById('artist-select');
+                select.innerHTML = '<option value="">-- None (General Playlist) --</option>';
                 data.forEach(artist => {
                     select.innerHTML += `<option value="${artist.id}">${artist.name}</option>`;
                 });
@@ -225,7 +246,6 @@
 
             if (!colsRes.error && colsRes.data) {
                 collectionsList = colsRes.data;
-                
                 const artistsMap = new Map();
                 if (!artistsRes.error && artistsRes.data) {
                     artistsRes.data.forEach(a => artistsMap.set(String(a.id), a.name));
@@ -243,6 +263,13 @@
             }
         }
 
+        async function loadAllTracks() {
+            const { data, error } = await _supabase.from('tracks').select('id, title, collection_id');
+            if (!error && data) {
+                allMasterTracks = data;
+            }
+        }
+
         function renderCollections() {
             const container = document.getElementById('collections-container');
             container.innerHTML = '';
@@ -255,7 +282,6 @@
             collectionsList.forEach(col => {
                 const item = document.createElement('div');
                 item.className = 'collection-item';
-                
                 const artistLabel = col.artist_name ? ` • ${col.artist_name}` : '';
 
                 item.innerHTML = `
@@ -325,11 +351,14 @@
             if (!error) loadCollections();
         }
 
-        /* --- Reorder Modal & Drag-and-Drop Functions --- */
+        /* --- Reorder & Add Songs Modal Functions --- */
         async function openReorderModal(collectionId, collectionTitle) {
             activeCollectionId = collectionId;
             document.getElementById('modal-album-title').innerText = `Manage: ${collectionTitle}`;
             
+            await loadAllTracks();
+            
+            // Fetch tracks belonging to this collection
             const { data, error } = await _supabase
                 .from('tracks')
                 .select('id, title, artwork_url, collection_sort_order')
@@ -339,9 +368,56 @@
             if (!error && data) {
                 activeCollectionTracks = data;
                 renderModalTracks();
+                populateAvailableTracksDropdown();
                 document.getElementById('reorder-modal').classList.remove('hidden');
             } else {
                 alert('Could not load tracks for this collection.');
+            }
+        }
+
+        function populateAvailableTracksDropdown() {
+            const select = document.getElementById('available-tracks-select');
+            select.innerHTML = '<option value="">-- Select track to add --</option>';
+            
+            // Filter tracks that are not already in this collection
+            const currentTrackIds = new Set(activeCollectionTracks.map(t => t.id));
+            allMasterTracks.forEach(track => {
+                if (!currentTrackIds.has(track.id)) {
+                    select.innerHTML += `<option value="${track.id}">${track.title}</option>`;
+                }
+            });
+        }
+
+        async function addTrackToCollection() {
+            const trackId = document.getElementById('available-tracks-select').value;
+            if (!trackId) {
+                alert('Please select a track to add.');
+                return;
+            }
+
+            const nextSortOrder = activeCollectionTracks.length + 1;
+            const { error } = await _supabase
+                .from('tracks')
+                .update({ collection_id: activeCollectionId, collection_sort_order: nextSortOrder })
+                .eq('id', trackId);
+
+            if (!error) {
+                openReorderModal(activeCollectionId, document.getElementById('modal-album-title').innerText.replace('Manage: ', ''));
+            } else {
+                alert('Error adding track to collection.');
+            }
+        }
+
+        async function removeTrackFromCollection(trackId) {
+            const { error } = await _supabase
+                .from('tracks')
+                .update({ collection_id: null, collection_sort_order: 99 })
+                .eq('id', trackId);
+
+            if (!error) {
+                openReorderModal(activeCollectionId, document.getElementById('modal-album-title').innerText.replace('Manage: ', ''));
+            } else {
+                alert('Error removing track from collection.');
             }
         }
 
@@ -349,6 +425,7 @@
             document.getElementById('reorder-modal').classList.add('hidden');
             activeCollectionId = null;
             activeCollectionTracks = [];
+            loadCollections();
         }
 
         function closeReorderModalOnOutside(e) {
@@ -360,7 +437,7 @@
             container.innerHTML = '';
 
             if (activeCollectionTracks.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#888; font-size:12px; margin:20px 0;">No tracks assigned to this collection yet. Add tracks via the upload portal.</p>';
+                container.innerHTML = '<p style="text-align:center; color:#888; font-size:12px; margin:20px 0;">No tracks assigned to this collection yet. Use the dropdown above to add songs.</p>';
                 return;
             }
 
@@ -376,6 +453,7 @@
                     <div class="track-drag-info">
                         <div class="track-drag-title">${track.title}</div>
                     </div>
+                    <button class="btn-remove-track" onclick="removeTrackFromCollection('${track.id}')">Remove</button>
                 `;
 
                 card.addEventListener('dragstart', handleDragStart);
@@ -431,7 +509,7 @@
             try {
                 await Promise.all(updates);
                 if (!isSilent) {
-                    alert('Collection track order saved successfully!');
+                    alert('Collection order saved successfully!');
                     closeReorderModal();
                 }
             } catch (err) {
