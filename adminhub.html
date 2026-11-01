@@ -111,6 +111,10 @@
                 <svg viewBox="0 0 24 24"><path d="M3 15h18v-2H3v2zm0 4h18v-2H3v2zm0-8h18V9H3v2zm0-6v2h18V5H3z"/></svg>
                 Manage Catalog & Rotation
             </button>
+            <button class="secondary-btn" onclick="location.href='collections.html'">
+                <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                Manage Playlists & Albums
+            </button>
             
             <!-- Optional Lock/Logout button -->
             <button class="secondary-btn" style="background: #1e1e1e; border-color: #444; color: #888; font-size: 12px; padding: 8px;" onclick="lockHub()">
@@ -130,7 +134,7 @@
 
             if (inputVal === ADMIN_PASSWORD) {
                 sessionStorage.setItem('2g_admin_auth', 'true');
-                localStorage.removeItem('2g_admin_auth'); // Clear any lingering local tokens
+                localStorage.removeItem('2g_admin_auth');
                 showDashboard();
             } else {
                 errorMsg.innerText = "Incorrect password. Try again.";
