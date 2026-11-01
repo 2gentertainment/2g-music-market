@@ -590,18 +590,16 @@
             if (type === 'all') {
                 activePlaylist = [...masterPlaylist];
             } else if (type === 'playlist') {
-                activePlaylist = masterPlaylist.filter(track => track.collection_id === value);
+                activePlaylist = masterPlaylist.filter(track => String(track.collection_id) === String(value));
             } else if (type === 'artist') {
-                const artistTracks = masterPlaylist.filter(track => track.artists && track.artists.id === value);
-                const artistAlbums = collectionsList.filter(col => col.artist_id === value && col.type === 'album');
+                const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(value));
+                const artistAlbums = collectionsList.filter(col => String(col.artist_id) === String(value) && col.type === 'album');
                 
                 const hasSingles = artistTracks.some(t => !t.collection_id);
                 const hasAlbums = artistAlbums.length > 0;
 
-                // Default initial view: show all tracks for this artist
                 activePlaylist = artistTracks;
 
-                // Show sub-menu ONLY if the artist has both singles AND albums, or multiple categories to toggle
                 if (hasSingles && hasAlbums) {
                     submenuBar.classList.remove('hidden');
                     submenuBar.innerHTML = `
@@ -613,9 +611,10 @@
                     submenuBar.classList.remove('hidden');
                     submenuBar.innerHTML = `<div class="sub-tab active-sub" onclick="setArtistSubFilter('albums', this)">Albums</div>`;
                     currentArtistSubFilter = 'albums';
-                    activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => a.id === t.collection_id));
-                } else {
+                    activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => String(a.id) === String(t.collection_id)));
+                } else if (hasSingles && !hasAlbums) {
                     submenuBar.classList.add('hidden');
+                    activePlaylist = artistTracks.filter(t => !t.collection_id);
                 }
             }
 
@@ -631,15 +630,15 @@
             document.querySelectorAll('.sub-tab').forEach(st => st.classList.remove('active-sub'));
             subTabElement.classList.add('active-sub');
 
-            const artistTracks = masterPlaylist.filter(track => track.artists && track.artists.id === currentFilterValue);
-            const artistAlbums = collectionsList.filter(col => col.artist_id === currentFilterValue && col.type === 'album');
+            const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(currentFilterValue));
+            const artistAlbums = collectionsList.filter(col => String(col.artist_id) === String(currentFilterValue) && col.type === 'album');
 
             if (subType === 'all') {
                 activePlaylist = artistTracks;
             } else if (subType === 'singles') {
                 activePlaylist = artistTracks.filter(t => !t.collection_id);
             } else if (subType === 'albums') {
-                activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => a.id === t.collection_id));
+                activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => String(a.id) === String(t.collection_id)));
             }
 
             if (activePlaylist.length > 0) {
@@ -837,7 +836,7 @@
             const track = activePlaylist[currentIndex];
             if (!track) return;
             const container = document.getElementById('store-links-container');
-            container.innerHTML = '';
+            container.innerHTML = '',
 
             let count = 0;
             if (track.store_single_url && track.store_single_url.trim() !== '') {
@@ -865,6 +864,7 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
+            document.getElementById('store-modal').classList.add('hidden'); // wait, let's keep it clean
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
