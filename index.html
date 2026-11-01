@@ -857,18 +857,24 @@
             }
 
             const currentTrack = activePlaylist[currentIndex];
-            const tag = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
+            const rawTagString = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
             const listname = 'awlist6783124';
 
             const formData = new URLSearchParams();
             formData.append('listname', listname);
             formData.append('email', email);
-            formData.append('ad_tag', tag);
-            formData.append('tag', tag);
-            formData.append('tags', tag);
             formData.append('meta_ad_tracking', '2G_PWA_Player');
             formData.append('meta_message', '1');
             formData.append('meta_required', 'email');
+
+            // Split comma-separated tags from Supabase and append each individually
+            if (rawTagString) {
+                const tagsArray = rawTagString.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                tagsArray.forEach(tag => {
+                    formData.append('tag', tag);
+                    formData.append('ad_tag', tag);
+                });
+            }
 
             try {
                 await fetch('https://www.aweber.com/scripts/addlead.pl', {
@@ -877,7 +883,7 @@
                     body: formData
                 });
 
-                alert(`Thanks for joining! Tagged as: ${tag}`);
+                alert(`Thanks for joining! Tagged as: ${rawTagString}`);
                 emailInput.value = '';
                 hideSubscribeForm();
             } catch (err) {
