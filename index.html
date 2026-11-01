@@ -858,9 +858,8 @@
 
             const currentTrack = activePlaylist[currentIndex];
             const rawTagString = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
-            const listname = 'awlist6783124';
 
-            // Construct a native hidden form submission to bypass CORS fetch restrictions
+            // Construct a native hidden form submission matching AWeber's exact generator specification
             const form = document.createElement('form');
             form.action = 'https://www.aweber.com/scripts/addlead.pl';
             form.method = 'POST';
@@ -868,11 +867,13 @@
             form.style.display = 'none';
 
             const fields = {
-                'listname': listname,
-                'email': email,
-                'meta_ad_tracking': '2G_PWA_Player',
+                'meta_web_form_id': '110822147',
+                'meta_split_id': '',
+                'listname': 'awlist6783124',
+                'meta_adtracking': '2G_PWA_Player',
                 'meta_message': '1',
-                'meta_required': 'email'
+                'meta_required': 'email',
+                'email': email
             };
 
             for (const [key, value] of Object.entries(fields)) {
@@ -883,21 +884,21 @@
                 form.appendChild(input);
             }
 
-            // Split comma-separated tags and strictly trim leading/trailing whitespace from every individual tag
+            // Split comma-separated tags, strictly trim them, and append using AWeber's indexed tag format
             if (rawTagString) {
                 const tagsArray = rawTagString.split(',').map(t => t.trim()).filter(t => t.length > 0);
-                tagsArray.forEach(cleanTag => {
-                    const tagInput1 = document.createElement('input');
-                    tagInput1.type = 'hidden';
-                    tagInput1.name = 'tag';
-                    tagInput1.value = cleanTag;
-                    form.appendChild(tagInput1);
+                tagsArray.forEach((cleanTag, index) => {
+                    const tagInput = document.createElement('input');
+                    tagInput.type = 'hidden';
+                    tagInput.name = `tag_11082214${index}`;
+                    tagInput.value = cleanTag;
+                    form.appendChild(tagInput);
 
-                    const tagInput2 = document.createElement('input');
-                    tagInput2.type = 'hidden';
-                    tagInput2.name = 'ad_tag';
-                    tagInput2.value = cleanTag;
-                    form.appendChild(tagInput2);
+                    const fallbackInput = document.createElement('input');
+                    fallbackInput.type = 'hidden';
+                    fallbackInput.name = 'tag';
+                    fallbackInput.value = cleanTag;
+                    form.appendChild(fallbackInput);
                 });
             }
 
