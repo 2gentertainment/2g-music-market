@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2G Music Player</title>
+    <!-- Include Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Basic Dark & Orange 2G Styling */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .player-container {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            width: 320px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            text-align: center;
+            border: 1px solid #333;
+        }
+        .track-info img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .track-info h3 {
+            margin: 5px 0;
+            font-size: 18px;
+        }
+        .track-info p {
+            color: #ff8c00;
+            margin: 0 0 15px 0;
+            font-size: 14px;
+        }
+        .subscribe-container {
+            margin-bottom: 20px;
+        }
+        #subscribe-btn {
+            background-color: #ff8c00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            width: 100%;
+        }
+        #subscribe-input-box {
+            display: none;
+            gap: 5px;
+        }
+        #subscribe-input-box input {
+            flex: 1;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #111;
+            color: #fff;
+        }
+        #subscribe-input-box button {
+            background: #ff8c00;
+            border: none;
+            padding: 8px 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
+        }
+        .controls button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        #play-pause-btn {
+            background: #ff8c00;
+            color: #000;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-container">
+        <!-- Artwork & Track Info -->
+        <div class="track-info">
+            <img id="current-artwork" src="https://via.placeholder.com/250" alt="Artwork">
+            <div>
+                <h3 id="current-title">Loading Track...</h3>
+                <p id="current-artist">2G Entertainment</p>
+            </div>
+        </div>
+
+        <!-- Interactive Smart Subscribe Button -->
+        <div class="subscribe-container">
+            <button id="subscribe-btn" onclick="transformSubscribeInput()">SUBSCRIBE</button>
+            <div id="subscribe-input-box" style="display: none;">
+                <input type="email" id="fan-email" placeholder="Enter email...">
+                <button onclick="submitFanSubscription()">Join</button>
+            </div>
+        </div>
+
+        <!-- Audio Element & Playback Controls -->
+        <audio id="audio-player"></audio>
+        <div class="controls">
+            <button onclick="prevTrack()">⏮</button>
+            <button id="play-pause-btn" onclick="togglePlay()">▶</button>
+            <button onclick="nextTrack()">⏭</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Engine Script -->
+    <script src="script.js"></script>
+</body>
+</html>
