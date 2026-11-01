@@ -676,12 +676,16 @@
 
         // When a specific album is clicked from the list, show its tracks
         function selectAlbum(albumId, artistTracks) {
-            activePlaylist = artistTracks.filter(t => String(t.collection_id) === String(albumId));
+            activePlaylist = artistTracks
+                .filter(t => String(t.collection_id) === String(albumId))
+                .sort((a, b) => (a.collection_sort_order || 99) - (b.collection_sort_order || 99));
+                
             renderInlinePlaylist();
             if (activePlaylist.length > 0) {
                 loadTrackData(0);
             }
         }
+
 
         function loadTrackData(index) {
             currentIndex = index;
