@@ -628,18 +628,25 @@
             event.target.classList.add('active-sub');
 
             const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(artistId));
-            const artistAlbums = collectionsList.filter(col => String(col.artist_id) === String(artistId) && col.type === 'album');
+            
+            // Match collections where artist_id matches OR where the track belongs to an album of this artist
+            const artistAlbums = collectionsList.filter(col => {
+                const matchesColArtist = col.artist_id && String(col.artist_id) === String(artistId);
+                const isAlbumType = col.type && col.type.toLowerCase() === 'album';
+                // Also check if any track for this artist references this collection ID
+                const hasArtistTrackInCol = artistTracks.some(t => String(t.collection_id) === String(col.id));
+                return isAlbumType && (matchesColArtist || hasArtistTrackInCol);
+            });
 
             if (subType === 'singles') {
-                // Show standalone single tracks
                 activePlaylist = artistTracks.filter(t => !t.collection_id);
                 renderInlinePlaylist();
                 if (activePlaylist.length > 0) loadTrackData(0);
             } else if (subType === 'albums') {
-                // Step 1: Render the list of albums for this artist in the inline playlist area
                 renderAlbumList(artistAlbums, artistTracks);
             }
         }
+
 
         // Render the list of album projects so the user can select which album to view
         function renderAlbumList(albums, artistTracks) {
