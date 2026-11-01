@@ -831,6 +831,22 @@
             document.getElementById('subscriber-email').focus();
         }
 
+        function hideSubscribeForm() {
+            document.getElementById('subscribe-form-box').classList.add('hidden');
+            document.getElementById('action-row').classList.remove('hidden');
+        }
+
+        // Revert form when clicking outside the subscribe container
+        document.addEventListener('click', (e) => {
+            const subscribeContainer = document.querySelector('.subscribe-container');
+            const formBox = document.getElementById('subscribe-form-box');
+            if (subscribeContainer && formBox && !formBox.classList.contains('hidden')) {
+                if (!subscribeContainer.contains(e.target)) {
+                    hideSubscribeForm();
+                }
+            }
+        });
+
         async function submitSubscriber() {
             const email = document.getElementById('subscriber-email').value.trim();
             if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
@@ -838,8 +854,7 @@
             const tag = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
             alert(`Thanks for joining! Tagged as: ${tag}`);
             document.getElementById('subscriber-email').value = '';
-            document.getElementById('subscribe-form-box').classList.add('hidden');
-            document.getElementById('action-row').classList.remove('hidden');
+            hideSubscribeForm();
         }
 
         function renderInlinePlaylist() {
@@ -929,7 +944,6 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
-            document.getElementById('store-modal').classList.add('hidden'); // Fixed typo from original modal handler
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
