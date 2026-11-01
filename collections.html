@@ -192,7 +192,6 @@
             </div>
             <p class="modal-instructions">Drag and drop tracks to reorder. Changes save automatically.</p>
             
-            <!-- Add Song to Collection Row -->
             <div class="add-track-row">
                 <select id="available-tracks-select">
                     <option value="">-- Select track to add --</option>
@@ -304,7 +303,7 @@
         async function createCollection() {
             const title = document.getElementById('col-title').value.trim();
             const type = document.getElementById('col-type').value;
-            const artistId = document.getElementById('artist-select').value;
+            const rawArtistId = document.getElementById('artist-select').value;
             const statusMsg = document.getElementById('status-msg');
 
             if (!title) {
@@ -314,10 +313,19 @@
 
             statusMsg.innerText = 'Creating collection...';
 
+            // Safely parse artist_id: if your DB expects a number, parse it; otherwise send null if empty.
+            // If your DB has bigint, passing a UUID string throws the bigint error. 
+            // We check if it's purely numeric, or we safely send null/parsed value.
+            let parsedArtistId = null;
+            if (rawArtistId && rawArtistId.trim() !== '') {
+                // If it's a number string, parse it, otherwise pass as is (or null if it mismatches)
+                parsedArtistId = !isNaN(rawArtistId) ? parseInt(rawArtistId, 10) : rawArtistId;
+            }
+
             const { error } = await _supabase.from('collections').insert([{
                 title: title,
                 type: type,
-                artist_id: artistId ? artistId : null,
+                artist_id: parsedArtistId,
                 is_visible: true,
                 sort_order: 99
             }]);
@@ -358,7 +366,6 @@
             
             await loadAllTracks();
             
-            // Fetch tracks belonging to this collection
             const { data, error } = await _supabase
                 .from('tracks')
                 .select('id, title, artwork_url, collection_sort_order')
@@ -379,7 +386,6 @@
             const select = document.getElementById('available-tracks-select');
             select.innerHTML = '<option value="">-- Select track to add --</option>';
             
-            // Filter tracks that are not already in this collection
             const currentTrackIds = new Set(activeCollectionTracks.map(t => t.id));
             allMasterTracks.forEach(track => {
                 if (!currentTrackIds.has(track.id)) {
