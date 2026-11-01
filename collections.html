@@ -121,11 +121,11 @@
         }
         .track-drag-card {
             background: #252525;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border-radius: 6px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             border: 1px solid #333;
             cursor: grab;
             transition: background 0.2s, border-color 0.2s;
@@ -133,11 +133,11 @@
         .track-drag-card:active { cursor: grabbing; }
         .track-drag-card.dragging { opacity: 0.4; border-color: #ff8c00; }
         .track-drag-card.drag-over { border-color: #ff8c00; background: #2f2316; }
-        .track-drag-card img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
+        .track-drag-card img { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
         .track-drag-info { flex: 1; overflow: hidden; }
-        .track-drag-title { font-size: 12px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .drag-handle { color: #555; font-size: 14px; cursor: grab; }
-        .btn-remove-track { background: #3a1515; color: #ff5252; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+        .track-drag-title { font-size: 13px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .drag-handle { color: #666; font-size: 14px; cursor: grab; flex-shrink: 0; }
+        .btn-remove-track { background: #3a1515; color: #ff5252; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0; }
         .btn-remove-track:hover { background: #521a1a; }
 
         .link-back { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #888; text-decoration: none; }
@@ -313,12 +313,8 @@
 
             statusMsg.innerText = 'Creating collection...';
 
-            // Safely parse artist_id: if your DB expects a number, parse it; otherwise send null if empty.
-            // If your DB has bigint, passing a UUID string throws the bigint error. 
-            // We check if it's purely numeric, or we safely send null/parsed value.
             let parsedArtistId = null;
             if (rawArtistId && rawArtistId.trim() !== '') {
-                // If it's a number string, parse it, otherwise pass as is (or null if it mismatches)
                 parsedArtistId = !isNaN(rawArtistId) ? parseInt(rawArtistId, 10) : rawArtistId;
             }
 
