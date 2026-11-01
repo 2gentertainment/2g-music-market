@@ -72,9 +72,12 @@
             border: 1px solid #444;
             background: #111;
             color: #fff;
-            /* 16px minimum prevents mobile safari/chrome from auto-zooming */
-            font-size: 16px; 
+            font-size: 16px;
+            /* Forces mobile browsers to respect the element size and skip auto-zooming */
+            transform: scale(1); 
+            touch-action: manipulation;
         }
+
         .sub-form button {
             background-color: #ff8c00;
             color: #000;
