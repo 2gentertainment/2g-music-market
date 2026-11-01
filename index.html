@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Anti-zoom viewport restriction -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2G Entertainment - Music Player</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -71,7 +72,8 @@
             border: 1px solid #444;
             background: #111;
             color: #fff;
-            font-size: 13px;
+            /* 16px minimum prevents mobile safari/chrome from auto-zooming */
+            font-size: 16px; 
         }
         .sub-form button {
             background-color: #ff8c00;
@@ -81,6 +83,7 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
+            font-size: 14px;
         }
 
         .controls {
@@ -277,6 +280,7 @@
         function revealSubscribeForm() {
             document.getElementById('become-fan-btn').classList.add('hidden');
             document.getElementById('subscribe-form-box').classList.remove('hidden');
+            document.getElementById('subscriber-email').focus();
         }
 
         async function submitSubscriber() {
