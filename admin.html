@@ -193,7 +193,7 @@
             // 1. Upload Audio
             const audioFileName = `${Date.now()}_${audioFile.name}`;
             const { data: audioData, error: audioError } = await _supabase.storage
-                .from('audio_files')
+                .from('audio-tracks')
                 .upload(audioFileName, audioFile);
 
             if (audioError) {
@@ -202,7 +202,7 @@
             }
 
             const { data: audioPublicUrl } = _supabase.storage
-                .from('audio_files')
+                .from('audio-tracks')
                 .getPublicUrl(audioFileName);
 
             // 2. Upload Artwork (if provided)
