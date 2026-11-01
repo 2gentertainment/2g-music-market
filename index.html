@@ -202,26 +202,29 @@
             color: #000;
         }
 
-        /* Context-Aware Sub-Menu Bar (Singles vs Albums) */
+        /* Centered Sub-Menu Bar (Singles vs Albums) */
         .submenu-container {
             display: flex;
-            gap: 6px;
-            margin-bottom: 6px;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
         .sub-tab {
-            background: #161616;
+            background: #1c1c1c;
             border: 1px solid #444;
-            color: #888;
-            padding: 4px 12px;
+            color: #aaa;
+            padding: 6px 16px;
             border-radius: 14px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
+            text-align: center;
         }
+        .sub-tab:hover { background: #2a2a2a; color: #fff; }
         .sub-tab.active-sub {
-            background: #333;
-            color: #fff;
+            background: #ff8c00;
+            color: #000;
             border-color: #ff8c00;
         }
 
@@ -242,10 +245,10 @@
             gap: 6px;
         }
 
-        /* Playlist Item Design */
+        /* Playlist / Album Item Design */
         .playlist-item {
             background: #202020;
-            padding: 6px 10px;
+            padding: 8px 12px;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -419,12 +422,12 @@
             </div>
         </div>
 
-        <!-- Horizontal Scrolling Category / Artist Filter Tabs -->
+        <!-- Horizontal Scrolling Category / Artist Tab Bar -->
         <div id="category-tabs" class="category-scroll-container">
             <div class="cat-tab active-tab" onclick="filterCatalog('all', null, this)">All Songs</div>
         </div>
 
-        <!-- Context-Aware Sub-Menu Bar (Singles vs Albums) -->
+        <!-- Context-Aware Centered Sub-Menu Bar (Singles vs Albums) -->
         <div id="submenu-bar" class="submenu-container hidden"></div>
 
         <!-- Independent Scrollable Inline Playlist Drawer -->
@@ -499,7 +502,6 @@
         let isRepeated = false;
         let currentFilterType = 'all'; 
         let currentFilterValue = null; 
-        let currentArtistSubFilter = 'all'; 
 
         const audioElement = document.getElementById('audio-element');
         const playIcon = document.getElementById('play-icon');
@@ -574,11 +576,10 @@
             });
         }
 
-        // Filter Catalog with Smart Artist Sub-Menu Logic
+        // Filter Catalog: When Artist is clicked, show centered "Singles" and "Albums" sub-menu
         function filterCatalog(type, value, tabElement) {
             currentFilterType = type;
             currentFilterValue = value;
-            currentArtistSubFilter = 'all';
 
             document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active-tab'));
             if (tabElement) tabElement.classList.add('active-tab');
@@ -589,8 +590,10 @@
 
             if (type === 'all') {
                 activePlaylist = [...masterPlaylist];
+                renderInlinePlaylist();
             } else if (type === 'playlist') {
                 activePlaylist = masterPlaylist.filter(track => String(track.collection_id) === String(value));
+                renderInlinePlaylist();
             } else if (type === 'artist') {
                 const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(value));
                 const artistAlbums = collectionsList.filter(col => String(col.artist_id) === String(value) && col.type === 'album');
@@ -598,58 +601,85 @@
                 const hasSingles = artistTracks.some(t => !t.collection_id);
                 const hasAlbums = artistAlbums.length > 0;
 
-                activePlaylist = artistTracks;
+                // Show centered sub-menu blocks for Singles and Albums
+                submenuBar.classList.remove('hidden');
+                submenuBar.innerHTML = `
+                    <div class="sub-tab" onclick="handleArtistSubMenu('singles', '${value}')">Singles</div>
+                    <div class="sub-tab" onclick="handleArtistSubMenu('albums', '${value}')">Albums</div>
+                `;
 
-                if (hasSingles && hasAlbums) {
-                    submenuBar.classList.remove('hidden');
-                    submenuBar.innerHTML = `
-                        <div class="sub-tab active-sub" onclick="setArtistSubFilter('all', this)">All</div>
-                        <div class="sub-tab" onclick="setArtistSubFilter('singles', this)">Singles</div>
-                        <div class="sub-tab" onclick="setArtistSubFilter('albums', this)">Albums</div>
-                    `;
-                } else if (hasAlbums && !hasSingles) {
-                    submenuBar.classList.remove('hidden');
-                    submenuBar.innerHTML = `<div class="sub-tab active-sub" onclick="setArtistSubFilter('albums', this)">Albums</div>`;
-                    currentArtistSubFilter = 'albums';
-                    activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => String(a.id) === String(t.collection_id)));
-                } else if (hasSingles && !hasAlbums) {
-                    submenuBar.classList.add('hidden');
+                // Default view when clicking artist tab: show their singles first (or all if no singles)
+                if (hasSingles) {
                     activePlaylist = artistTracks.filter(t => !t.collection_id);
+                } else {
+                    activePlaylist = artistTracks;
                 }
+                renderInlinePlaylist();
             }
 
             if (activePlaylist.length > 0) {
                 loadTrackData(0);
             }
-            renderInlinePlaylist();
         }
 
-        // Handle clicking Singles vs Albums sub-menu
-        function setArtistSubFilter(subType, subTabElement) {
-            currentArtistSubFilter = subType;
+        // Handle clicking "Singles" or "Albums" block under an artist
+        function handleArtistSubMenu(subType, artistId) {
             document.querySelectorAll('.sub-tab').forEach(st => st.classList.remove('active-sub'));
-            subTabElement.classList.add('active-sub');
+            event.target.classList.add('active-sub');
 
-            const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(currentFilterValue));
-            const artistAlbums = collectionsList.filter(col => String(col.artist_id) === String(currentFilterValue) && col.type === 'album');
+            const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(artistId));
+            const artistAlbums = collectionsList.filter(col => String(col.artist_id) === String(artistId) && col.type === 'album');
 
-            if (subType === 'all') {
-                activePlaylist = artistTracks;
-            } else if (subType === 'singles') {
+            if (subType === 'singles') {
+                // Show standalone single tracks
                 activePlaylist = artistTracks.filter(t => !t.collection_id);
+                renderInlinePlaylist();
+                if (activePlaylist.length > 0) loadTrackData(0);
             } else if (subType === 'albums') {
-                activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => String(a.id) === String(t.collection_id)));
+                // Step 1: Render the list of albums for this artist in the inline playlist area
+                renderAlbumList(artistAlbums, artistTracks);
+            }
+        }
+
+        // Render the list of album projects so the user can select which album to view
+        function renderAlbumList(albums, artistTracks) {
+            const container = document.getElementById('inline-tracks-container');
+            container.innerHTML = '';
+
+            if (!albums || albums.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#777; font-size:12px; margin:10px 0;">No albums available for this artist.</p>';
+                return;
             }
 
+            albums.forEach(album => {
+                const albumTracksCount = artistTracks.filter(t => String(t.collection_id) === String(album.id)).length;
+                const item = document.createElement('div');
+                item.className = 'playlist-item';
+                item.onclick = () => selectAlbum(album.id, artistTracks);
+
+                item.innerHTML = `
+                    <div class="playlist-item-info" style="padding: 4px 0;">
+                        <div class="playlist-item-title">📁 ${album.title}</div>
+                        <div class="playlist-item-artist">${albumTracksCount} track${albumTracksCount === 1 ? '' : 's'}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // When a specific album is clicked from the list, show its tracks
+        function selectAlbum(albumId, artistTracks) {
+            activePlaylist = artistTracks.filter(t => String(t.collection_id) === String(albumId));
+            renderInlinePlaylist();
             if (activePlaylist.length > 0) {
                 loadTrackData(0);
             }
-            renderInlinePlaylist();
         }
 
         function loadTrackData(index) {
             currentIndex = index;
             const track = activePlaylist[currentIndex];
+            if (!track) return;
 
             document.getElementById('track-title').innerText = track.title;
             document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Entertainment';
@@ -662,12 +692,12 @@
             
             playIcon.classList.remove('hidden');
             pauseIcon.classList.add('hidden');
-            renderInlinePlaylist();
         }
 
         function playTrack(index) {
             currentIndex = index;
             const track = activePlaylist[currentIndex];
+            if (!track) return;
 
             document.getElementById('track-title').innerText = track.title;
             document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Entertainment';
