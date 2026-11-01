@@ -353,6 +353,27 @@
         const currentTimeEl = document.getElementById('current-time');
         const totalDurationEl = document.getElementById('total-duration');
 
+        // Setup Media Session API for iOS/Android Lock Screen & Control Center
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
+            navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
+            navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
+            navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
+        }
+
+        function updateMediaSession(track) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: track.title,
+                    artist: track.artists ? track.artists.name : '2G Entertainment',
+                    album: '2G Entertainment Release',
+                    artwork: [
+                        { src: track.artwork_url || '', sizes: '512x512', type: 'image/jpeg' }
+                    ]
+                });
+            }
+        }
+
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
@@ -385,6 +406,7 @@
             currentTimeEl.innerText = "0:00";
             totalDurationEl.innerText = "0:00";
             
+            updateMediaSession(track);
             playIcon.classList.remove('hidden');
             pauseIcon.classList.add('hidden');
         }
@@ -398,6 +420,8 @@
             document.getElementById('track-artwork').src = track.artwork_url || '';
             
             audioElement.src = track.audio_file_path;
+            updateMediaSession(track);
+
             audioElement.play().then(() => {
                 updatePlayButton();
             }).catch(err => {
