@@ -13,15 +13,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
-            overflow-y: auto; /* Allows smooth scrolling if screen is short */
-            padding: 15px 0;
-            box-sizing: border-box;
+            overflow: hidden; /* Locks scroll completely */
         }
         .player-card {
             background: #1e1e1e;
-            padding: 20px;
+            padding: 16px;
             border-radius: 16px;
             width: 340px;
             box-sizing: border-box;
@@ -33,10 +31,11 @@
         }
         .artwork-container {
             width: 100%;
+            max-height: 240px; /* Snug height to guarantee zero page scrolling */
             background: #111;
             border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -44,21 +43,21 @@
         .artwork-container img {
             width: 100%;
             height: auto;
-            max-height: 320px;
-            object-fit: contain; /* Preserves full uncropped dimensions cleanly */
+            max-height: 240px;
+            object-fit: contain; /* Keeps full artwork dimensions uncropped */
             display: block;
         }
-        h3 { margin: 8px 0 3px 0; font-size: 17px; color: #fff; }
-        p { margin: 0 0 12px 0; font-size: 13px; color: #ff8c00; }
+        h3 { margin: 6px 0 2px 0; font-size: 16px; color: #fff; }
+        p { margin: 0 0 10px 0; font-size: 13px; color: #ff8c00; }
         
         /* Progress Bar Styles */
         .progress-container {
             width: 100%;
-            margin-bottom: 14px;
+            margin-bottom: 10px;
         }
         .progress-bar {
             width: 100%;
-            height: 6px;
+            height: 5px;
             -webkit-appearance: none;
             appearance: none;
             background: #333;
@@ -80,20 +79,20 @@
             justify-content: space-between;
             font-size: 11px;
             color: #888;
-            margin-top: 4px;
+            margin-top: 3px;
         }
 
-        .subscribe-section { margin-bottom: 15px; }
+        .subscribe-section { margin-bottom: 12px; }
         .main-sub-btn {
             background-color: #ff8c00;
             color: #000;
             border: none;
-            padding: 11px;
+            padding: 10px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
             width: 100%;
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 0.5px;
         }
         .main-sub-btn:hover { background-color: #e07b00; }
@@ -104,7 +103,7 @@
         }
         .sub-form input {
             flex: 1;
-            padding: 9px;
+            padding: 8px;
             border-radius: 8px;
             border: 1px solid #444;
             background: #111;
@@ -117,11 +116,11 @@
             background-color: #ff8c00;
             color: #000;
             border: none;
-            padding: 0 14px;
+            padding: 0 12px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .controls {
@@ -129,14 +128,14 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-top: 5px;
+            margin-top: 4px;
         }
         .controls button {
             background: #2a2a2a;
             border: none;
             color: #aaa;
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -155,8 +154,8 @@
         .controls button#play-pause-btn {
             background: #ff8c00;
             color: #000;
-            width: 48px;
-            height: 48px;
+            width: 46px;
+            height: 46px;
         }
         .controls button#play-pause-btn:hover { background: #e07b00; color: #000; }
         
