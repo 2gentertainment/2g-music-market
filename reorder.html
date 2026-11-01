@@ -6,17 +6,6 @@
     <title>2G Entertainment - Drag & Drop Catalog Suite</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <script>
-        // Security Guard: Check session authentication
-        if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
-            window.location.href = 'adminhub.html';
-        }
-
-        const SUPABASE_URL = 'https://chhwujiajdhaihupvuix.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    </script>
-    
     <style>
         body {
             background-color: #121212;
@@ -163,6 +152,15 @@
     </div>
 
     <script>
+        // Security Guard & Global Supabase Initialization
+        if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
+            window.location.href = 'adminhub.html';
+        }
+
+        const SUPABASE_URL = 'https://chhwujiajdhaihupvuix.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let localCatalog = [];
         let draggedIndex = null;
 
@@ -297,7 +295,7 @@
             setTimeout(() => { statusMsg.innerText = ''; }, 2500);
         }
         
-        // Trigger load once page is fully parsed
+        // Load catalog on start
         loadAdminCatalog();
     </script>
 </body>
