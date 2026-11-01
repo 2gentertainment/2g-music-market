@@ -502,6 +502,7 @@
         let isRepeated = false;
         let currentFilterType = 'all'; 
         let currentFilterValue = null; 
+        let currentPlayingTrackId = null; // Track currently active audio ID
 
         const audioElement = document.getElementById('audio-element');
         const playIcon = document.getElementById('play-icon');
@@ -576,7 +577,7 @@
             });
         }
 
-        // Filter Catalog: When Artist is clicked, show centered "Singles" and "Albums" sub-menu
+        // Filter Catalog: Switch view without disrupting playback
         function filterCatalog(type, value, tabElement) {
             currentFilterType = type;
             currentFilterValue = value;
@@ -599,26 +600,19 @@
                 const artistAlbums = collectionsList.filter(col => String(col.artist_id) === String(value) && col.type === 'album');
                 
                 const hasSingles = artistTracks.some(t => !t.collection_id);
-                const hasAlbums = artistAlbums.length > 0;
 
-                // Show centered sub-menu blocks for Singles and Albums
                 submenuBar.classList.remove('hidden');
                 submenuBar.innerHTML = `
                     <div class="sub-tab" onclick="handleArtistSubMenu('singles', '${value}')">Singles</div>
                     <div class="sub-tab" onclick="handleArtistSubMenu('albums', '${value}')">Albums</div>
                 `;
 
-                // Default view when clicking artist tab: show their singles first (or all if no singles)
                 if (hasSingles) {
                     activePlaylist = artistTracks.filter(t => !t.collection_id);
                 } else {
                     activePlaylist = artistTracks;
                 }
                 renderInlinePlaylist();
-            }
-
-            if (activePlaylist.length > 0) {
-                loadTrackData(0);
             }
         }
 
@@ -629,11 +623,9 @@
 
             const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(artistId));
             
-            // Match collections where artist_id matches OR where the track belongs to an album of this artist
             const artistAlbums = collectionsList.filter(col => {
                 const matchesColArtist = col.artist_id && String(col.artist_id) === String(artistId);
                 const isAlbumType = col.type && col.type.toLowerCase() === 'album';
-                // Also check if any track for this artist references this collection ID
                 const hasArtistTrackInCol = artistTracks.some(t => String(t.collection_id) === String(col.id));
                 return isAlbumType && (matchesColArtist || hasArtistTrackInCol);
             });
@@ -641,14 +633,12 @@
             if (subType === 'singles') {
                 activePlaylist = artistTracks.filter(t => !t.collection_id);
                 renderInlinePlaylist();
-                if (activePlaylist.length > 0) loadTrackData(0);
             } else if (subType === 'albums') {
                 renderAlbumList(artistAlbums, artistTracks);
             }
         }
 
-
-        // Render the list of album projects so the user can select which album to view
+        // Render the list of album projects
         function renderAlbumList(albums, artistTracks) {
             const container = document.getElementById('inline-tracks-container');
             container.innerHTML = '';
@@ -674,24 +664,21 @@
             });
         }
 
-        // When a specific album is clicked from the list, show its tracks
+        // When a specific album is clicked, switch view to its tracks without stopping audio
         function selectAlbum(albumId, artistTracks) {
             activePlaylist = artistTracks
                 .filter(t => String(t.collection_id) === String(albumId))
                 .sort((a, b) => (a.collection_sort_order || 99) - (b.collection_sort_order || 99));
                 
             renderInlinePlaylist();
-            if (activePlaylist.length > 0) {
-                loadTrackData(0);
-            }
         }
-
 
         function loadTrackData(index) {
             currentIndex = index;
             const track = activePlaylist[currentIndex];
             if (!track) return;
 
+            currentPlayingTrackId = track.id;
             document.getElementById('track-title').innerText = track.title;
             document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Entertainment';
             document.getElementById('track-artwork').src = track.artwork_url || '';
@@ -710,6 +697,7 @@
             const track = activePlaylist[currentIndex];
             if (!track) return;
 
+            currentPlayingTrackId = track.id;
             document.getElementById('track-title').innerText = track.title;
             document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Entertainment';
             document.getElementById('track-artwork').src = track.artwork_url || '';
@@ -830,7 +818,9 @@
 
             activePlaylist.forEach((track, index) => {
                 const item = document.createElement('div');
-                item.className = `playlist-item ${index === currentIndex ? 'active-track' : ''}`;
+                // Highlight active track if it's currently playing in this list
+                const isActive = track.id === currentPlayingTrackId;
+                item.className = `playlist-item ${isActive ? 'active-track' : ''}`;
                 item.onclick = () => playTrack(index);
 
                 item.innerHTML = `
@@ -846,7 +836,7 @@
 
         /* Stream Modal */
         function openStreamModal() {
-            const track = activePlaylist[currentIndex];
+            const track = activePlaylist[currentIndex] || masterPlaylist.find(t => t.id === currentPlayingTrackId);
             if (!track) return;
             const container = document.getElementById('stream-links-container');
             container.innerHTML = '';
@@ -874,7 +864,7 @@
 
         /* Store Modal */
         function openStoreModal() {
-            const track = activePlaylist[currentIndex];
+            const track = activePlaylist[currentIndex] || masterPlaylist.find(t => t.id === currentPlayingTrackId);
             if (!track) return;
             const container = document.getElementById('store-links-container');
             container.innerHTML = '';
@@ -905,7 +895,7 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
-            document.getElementById('store-modal').classList.remove('hidden');
+            document.getElementById('store-modal').classList.add('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
         function closeStoreModalOnOutside(e) { if (e.target.id === 'store-modal') closeStoreModal(); }
