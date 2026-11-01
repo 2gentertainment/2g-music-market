@@ -138,7 +138,8 @@
 
         <!-- Action Controls -->
         <div class="action-bar">
-            <button class="secondary-btn" onclick="randomizeCatalog()">🎲 Randomize Order</button>
+            <button class="secondary-btn" onclick="randomizeCatalog(true)">🎲 Randomize Order</button>
+            <button id="manual-refresh-btn" class="secondary-btn hidden" onclick="manualRefreshFeed()">🔄 Refresh Feed</button>
             <button onclick="saveCatalogOrder()">💾 Save New Order</button>
         </div>
 
@@ -176,6 +177,7 @@
                 localCatalog = data || [];
                 renderTrackList();
                 checkAutoShuffleStatus();
+                checkAutoPilotSchedule();
             } catch (err) {
                 console.error('Error loading catalog:', err);
                 document.getElementById('track-list').innerHTML = `<p style="color:#ff4d4d; text-align:center; font-size:12px;">Error: ${err.message || 'Could not load catalog'}</p>`;
@@ -251,15 +253,31 @@
             document.querySelectorAll('.track-card').forEach(c => c.classList.remove('drag-over'));
         }
 
-        function randomizeCatalog() {
+        function randomizeCatalog(showNotice = false) {
             for (let i = localCatalog.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [localCatalog[i], localCatalog[j]] = [localCatalog[j], localCatalog[i]];
             }
             renderTrackList();
             saveCatalogOrder(true);
-            document.getElementById('status-msg').innerText = 'Catalog randomized & saved!';
-            setTimeout(() => { document.getElementById('status-msg').innerText = ''; }, 2500);
+            
+            // Update last rotation timestamp
+            localStorage.setItem('2g_last_rotation_time', Date.now());
+
+            if (showNotice) {
+                document.getElementById('status-msg').innerText = 'Catalog randomized & saved!';
+                setTimeout(() => { document.getElementById('status-msg').innerText = ''; }, 2500);
+            }
+        }
+
+        // Manual mode refresh with confirmation prompt
+        function manualRefreshFeed() {
+            const confirmed = confirm("Are you sure you want to shuffle and push a new weekly rotation?");
+            if (confirmed) {
+                randomizeCatalog(true);
+                document.getElementById('status-msg').innerText = 'Weekly feed manually refreshed!';
+                setTimeout(() => { document.getElementById('status-msg').innerText = ''; }, 3000);
+            }
         }
 
         async function saveCatalogOrder(isSilent = false) {
@@ -285,14 +303,39 @@
         function checkAutoShuffleStatus() {
             const isAuto = localStorage.getItem('2g_auto_shuffle') === 'true';
             document.getElementById('auto-shuffle-toggle').checked = isAuto;
+            
+            const manualBtn = document.getElementById('manual-refresh-btn');
+            if (isAuto) {
+                manualBtn.classList.add('hidden'); // Hide manual button when on autopilot
+            } else {
+                manualBtn.classList.remove('hidden'); // Show manual button when autopilot is off
+            }
+        }
+
+        // Autopilot weekly background check (7 days = 604800000 ms)
+        function checkAutoPilotSchedule() {
+            const isAuto = localStorage.getItem('2g_auto_shuffle') === 'true';
+            if (!isAuto) return;
+
+            const lastRotation = localStorage.getItem('2g_last_rotation_time');
+            const now = Date.now();
+            const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+
+            if (!lastRotation || (now - parseInt(lastRotation)) >= oneWeekMs) {
+                console.log("Autopilot: Weekly rotation interval reached. Shuffling catalog...");
+                randomizeCatalog(false);
+            }
         }
 
         function toggleAutoShuffle() {
             const isChecked = document.getElementById('auto-shuffle-toggle').checked;
             localStorage.setItem('2g_auto_shuffle', isChecked);
+            
+            checkAutoShuffleStatus();
+
             const statusMsg = document.getElementById('status-msg');
-            statusMsg.innerText = isChecked ? 'Weekly Auto-Shuffle enabled.' : 'Weekly Auto-Shuffle disabled.';
-            setTimeout(() => { statusMsg.innerText = ''; }, 2500);
+            statusMsg.innerText = isChecked ? 'Weekly Auto-Shuffle enabled (Autopilot active).' : 'Weekly Auto-Shuffle disabled (Manual refresh mode).';
+            setTimeout(() => { statusMsg.innerText = ''; }, 3000);
         }
         
         // Load catalog on start
