@@ -1,23 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<span hidden>Sumter, South Carolina</span>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2G Entertainment - Manage Playlists & Albums</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <script>
-        // Security Guard: Strict session check
-        if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
-            window.location.href = 'adminhub.html';
-        }
-
-        const SUPABASE_URL = 'https://chhwujiajdhaihupvuix.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    </script>
-    
     <style>
         body {
             background-color: #121212;
@@ -29,28 +16,30 @@
             min-height: 100vh;
             margin: 0;
         }
-        .admin-container {
+        .admin-card {
             background: #1e1e1e;
             padding: 30px;
             border-radius: 12px;
-            width: 480px;
+            width: 460px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             border: 1px solid #333;
             max-height: 90vh;
             overflow-y: auto;
         }
-        h2 { color: #ff8c00; text-align: center; margin-top: 0; }
+        h2 { color: #ff8c00; text-align: center; margin-top: 0; font-size: 20px; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-size: 14px; color: #aaa; }
-        input, select {
+        label { display: block; margin-bottom: 5px; font-size: 13px; color: #aaa; }
+        input[type="text"], select {
             width: 100%;
             padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #444;
             background: #111;
+            border: 1px solid #444;
             color: #fff;
+            border-radius: 6px;
             box-sizing: border-box;
+            font-size: 14px;
         }
+        input:focus, select:focus { border-color: #ff8c00; outline: none; }
         button {
             background-color: #ff8c00;
             color: #000;
@@ -60,175 +49,166 @@
             border-radius: 6px;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px;
+            font-size: 14px;
+            margin-top: 5px;
         }
         button:hover { background-color: #e07b00; }
+        #status-msg { text-align: center; margin-top: 12px; font-size: 13px; color: #ff8c00; }
         
-        .collection-list {
-            margin-top: 25px;
-            border-top: 1px solid #333;
-            padding-top: 15px;
-        }
+        .collections-list { margin-top: 25px; border-top: 1px solid #333; padding-top: 15px; }
         .collection-item {
-            background: #252525;
+            background: #161616;
+            border: 1px solid #2a2a2a;
             padding: 12px;
             border-radius: 8px;
-            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid #333;
+            margin-bottom: 10px;
         }
-        .collection-info div:first-child { font-weight: bold; font-size: 14px; color: #fff; }
-        .collection-info div:last-child { font-size: 11px; color: #ff8c00; text-transform: uppercase; margin-top: 3px; }
-        
-        .collection-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-        .small-btn {
-            padding: 6px 8px;
-            font-size: 11px;
-            width: auto;
-            margin: 0;
-        }
-        .manage-btn {
-            background-color: #2a2a2a;
-            color: #fff;
-            border: 1px solid #555;
-        }
-        .manage-btn:hover { background-color: #383838; }
+        .col-info h4 { margin: 0 0 4px 0; font-size: 14px; color: #fff; }
+        .col-info span { font-size: 11px; color: #ff8c00; text-transform: uppercase; letter-spacing: 0.5px; }
+        .col-actions { display: flex; gap: 6px; }
+        .col-actions button { padding: 6px 10px; font-size: 11px; width: auto; margin-top: 0; }
+        .btn-songs { background: #333; color: #fff; border: 1px solid #555; }
+        .btn-songs:hover { background: #444; border-color: #ff8c00; }
+        .btn-visible { background: #1a2e1a; color: #4cd137; border: 1px solid #2e522e; }
+        .btn-hidden { background: #2e1a1a; color: #e84118; border: 1px solid #522e2e; }
+        .btn-delete { background: #3a1515; color: #ff5252; border: 1px solid #552222; }
+        .btn-delete:hover { background: #521a1a; }
 
-        .delete-btn {
-            background-color: #331a1a;
-            color: #ff4d4d;
-            border: 1px solid #552222;
-        }
-        .delete-btn:hover { background-color: #441a1a; }
-        
-        /* Modal Styles */
+        /* Modal Overlay for Track Reordering */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100vh;
             background: rgba(0,0,0,0.85);
             display: flex; justify-content: center; align-items: center;
-            z-index: 9999;
+            z-index: 1000;
         }
         .modal-card {
-            background: #1e1e1e;
-            border: 1px solid #444;
+            background: #1a1a1a;
+            border: 1px solid #333;
             border-radius: 12px;
-            width: 420px;
-            max-height: 80vh;
+            width: 440px;
+            max-height: 85vh;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            padding: 20px;
             box-sizing: border-box;
         }
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;
-        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .modal-header h3 { margin: 0; font-size: 16px; color: #ff8c00; }
-        .close-btn { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; width: auto; padding: 0; margin: 0;}
-        
-        .modal-track-list {
-            overflow-y: auto;
+        .close-btn { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; }
+        .modal-instructions { font-size: 12px; color: #888; margin-bottom: 12px; text-align: center; }
+
+        .track-list-box {
             flex: 1;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            max-height: 50vh;
             padding-right: 4px;
+            margin-bottom: 15px;
         }
-        .modal-track-row {
+        .track-drag-card {
             background: #252525;
-            padding: 10px;
+            padding: 10px 12px;
             border-radius: 6px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 10px;
             border: 1px solid #333;
+            cursor: grab;
+            transition: background 0.2s, border-color 0.2s;
         }
-        .modal-track-info div:first-child { font-size: 13px; font-weight: bold; color: #fff; }
-        .modal-track-info div:last-child { font-size: 11px; color: #aaa; }
+        .track-drag-card:active { cursor: grabbing; }
+        .track-drag-card.dragging { opacity: 0.4; border-color: #ff8c00; }
+        .track-drag-card.drag-over { border-color: #ff8c00; background: #2f2316; }
+        .track-drag-card img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
+        .track-drag-info { flex: 1; overflow: hidden; }
+        .track-drag-title { font-size: 12px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .drag-handle { color: #555; font-size: 14px; cursor: grab; }
 
-        #status-msg { text-align: center; margin-top: 15px; font-size: 13px; color: #ff8c00; }
-        .back-link { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #888; text-decoration: none; }
-        .back-link:hover { color: #fff; }
-        .hidden { display: none !important; }
+        .link-back { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #888; text-decoration: none; }
+        .link-back:hover { color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="admin-container">
+    <div class="admin-card">
         <h2>Manage Playlists & Albums</h2>
-        
-        <!-- Create Collection Form -->
+
         <div class="form-group">
             <label>Collection Title</label>
-            <input type="text" id="collection-title" placeholder="e.g., Summer Mixtape or Album Name">
+            <input type="text" id="col-title" placeholder="e.g., Summer Mixtape or Album Name">
         </div>
 
         <div class="form-group">
             <label>Type</label>
-            <select id="collection-type">
-                <option value="playlist">Playlist (Curated Tab)</option>
+            <select id="col-type">
                 <option value="album">Album (Artist Project)</option>
+                <option value="playlist">Curated General Playlist</option>
             </select>
         </div>
 
-        <div class="form-group" id="artist-select-group">
+        <div class="form-group">
             <label>Associated Artist (Optional for Albums)</label>
             <select id="artist-select">
-                <option value="">-- None / General --</option>
+                <option value="">-- None (General Playlist) --</option>
             </select>
         </div>
 
         <button onclick="createCollection()">Create Collection</button>
         <p id="status-msg"></p>
 
-        <!-- Existing Collections List -->
-        <div class="collection-list">
-            <label style="margin-bottom: 10px; font-weight: bold; color: #fff;">Existing Collections</label>
+        <div class="collections-list">
+            <h3 style="font-size: 15px; color: #fff; margin-top: 0;">Existing Collections</h3>
             <div id="collections-container">
-                <p style="text-align:center; color:#888; font-size:13px;">Loading collections...</p>
+                <p style="text-align: center; color: #777; font-size: 12px;">Loading collections...</p>
             </div>
         </div>
 
-        <a href="adminhub.html" class="back-link">← Back to Master Admin Hub</a>
+        <a href="adminhub.html" class="link-back">← Back to Master Admin Hub</a>
     </div>
 
-    <!-- Track Management Modal -->
-    <div id="track-modal" class="modal-overlay hidden">
+    <!-- Reorder Modal Popup -->
+    <div id="reorder-modal" class="modal-overlay hidden" onclick="closeReorderModalOnOutside(event)">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 id="modal-title">Manage Tracks</h3>
-                <button type="button" class="close-btn" onclick="closeTrackModal()">&times;</button>
+                <h3 id="modal-album-title">Manage Tracks</h3>
+                <button class="close-btn" onclick="closeReorderModal()">&times;</button>
             </div>
-            <p style="font-size: 12px; color: #aaa; margin-top:0;">Assign or remove songs for this collection:</p>
-            <div id="modal-tracks-container" class="modal-track-list">
-                <!-- Tracks dynamically loaded here -->
-            </div>
+            <p class="modal-instructions">Drag and drop tracks to reorder them within this collection. Changes save automatically.</p>
+            
+            <div id="modal-track-list" class="track-list-box"></div>
+            
+            <button onclick="saveCollectionOrder()">💾 Save New Order</button>
         </div>
     </div>
 
     <script>
-        let artistsList = [];
-        let allTracks = [];
+        if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
+            window.location.href = 'adminhub.html';
+        }
+
+        const SUPABASE_URL = 'https://chhwujiajdhaihupvuix.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let collectionsList = [];
         let activeCollectionId = null;
+        let activeCollectionTracks = [];
+        let draggedIndex = null;
 
         async function init() {
             await loadArtists();
-            await loadAllTracks();
             await loadCollections();
         }
 
         async function loadArtists() {
             const { data, error } = await _supabase.from('artists').select('id, name').order('name');
             if (!error && data) {
-                artistsList = data;
                 const select = document.getElementById('artist-select');
                 data.forEach(artist => {
                     select.innerHTML += `<option value="${artist.id}">${artist.name}</option>`;
@@ -236,68 +216,54 @@
             }
         }
 
-        async function loadAllTracks() {
-            const { data, error } = await _supabase.from('tracks').select('id, title, collection_id, artist_id, artists(name)').order('title');
+        async function loadCollections() {
+            const { data, error } = await _supabase
+                .from('collections')
+                .select('id, title, type, is_visible, artist_id, artists(name)')
+                .order('sort_order', { ascending: true, nullsFirst: true });
+
             if (!error && data) {
-                allTracks = data;
-            } else if (error) {
-                console.error("Error loading tracks cache:", error.message);
+                collectionsList = data;
+                renderCollections();
             }
         }
 
-        async function loadCollections() {
+        function renderCollections() {
             const container = document.getElementById('collections-container');
-            const { data, error } = await _supabase
-                .from('collections')
-                .select('id, title, type, is_visible, sort_order, artist_id')
-                .order('sort_order', { ascending: true, nullsFirst: true });
-
-            if (error) {
-                container.innerHTML = `<p style="color:red; text-align:center; font-size:12px;">Error: ${error.message}</p>`;
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#888; font-size:12px;">No collections created yet.</p>';
-                return;
-            }
-
             container.innerHTML = '';
-            data.forEach(item => {
-                const artistObj = artistsList.find(a => a.id === item.artist_id);
-                const subtitle = artistObj ? `${item.type} • ${artistObj.name}` : item.type;
-                const visibilityText = item.is_visible ? '👁️ Visible' : '🔒 Hidden';
 
-                const card = document.createElement('div');
-                card.className = 'collection-item';
+            if (collectionsList.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #777; font-size: 12px;">No collections created yet.</p>';
+                return;
+            }
+
+            collectionsList.forEach(col => {
+                const item = document.createElement('div');
+                item.className = 'collection-item';
                 
-                // Using dataset attributes instead of injecting unescaped string literals into inline onclick handlers
-                card.innerHTML = `
-                    <div class="collection-info">
-                        <div>${item.title}</div>
-                        <div>${subtitle}</div>
+                const artistLabel = col.artists ? ` • ${col.artists.name}` : '';
+
+                item.innerHTML = `
+                    <div class="col-info">
+                        <h4>${col.title}</h4>
+                        <span>${col.type}${artistLabel}</span>
                     </div>
-                    <div class="collection-actions">
-                        <button type="button" class="manage-btn small-btn song-trigger-btn" data-id="${item.id}" data-title="${item.title.replace(/"/g, '&quot;')}">Songs</button>
-                        <button type="button" class="secondary-btn small-btn" onclick="toggleVisibility(${item.id}, ${item.is_visible})">${visibilityText}</button>
-                        <button type="button" class="delete-btn small-btn" onclick="deleteCollection(${item.id})">Delete</button>
+                    <div class="col-actions">
+                        <button class="btn-songs" onclick="openReorderModal('${col.id}', '${col.title}')">Songs</button>
+                        <button class="${col.is_visible ? 'btn-visible' : 'btn-hidden'}" onclick="toggleVisibility('${col.id}', ${col.is_visible})">
+                            ${col.is_visible ? 'Visible' : 'Hidden'}
+                        </button>
+                        <button class="btn-delete" onclick="deleteCollection('${col.id}')">Delete</button>
                     </div>
                 `;
-                container.appendChild(card);
-            });
-
-            // Bind click listeners via JS directly to avoid HTML parsing bugs
-            document.querySelectorAll('.song-trigger-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    openTrackModal(parseInt(btn.getAttribute('data-id')), btn.getAttribute('data-title'));
-                });
+                container.appendChild(item);
             });
         }
 
         async function createCollection() {
-            const title = document.getElementById('collection-title').value.trim();
-            const type = document.getElementById('collection-type').value;
-            const artistId = document.getElementById('artist-select').value || null;
+            const title = document.getElementById('col-title').value.trim();
+            const type = document.getElementById('col-type').value;
+            const artistId = document.getElementById('artist-select').value;
             const statusMsg = document.getElementById('status-msg');
 
             if (!title) {
@@ -307,26 +273,23 @@
 
             statusMsg.innerText = 'Creating collection...';
 
-            const { error } = await _supabase
-                .from('collections')
-                .insert([{
-                    title: title,
-                    type: type,
-                    artist_id: artistId ? parseInt(artistId) : null,
-                    is_visible: true,
-                    sort_order: 99
-                }]);
+            const { error } = await _supabase.from('collections').insert([{
+                title: title,
+                type: type,
+                artist_id: artistId ? artistId : null,
+                is_visible: true,
+                sort_order: 99
+            }]);
 
             if (error) {
-                console.error(error);
                 statusMsg.innerText = 'Error: ' + error.message;
                 return;
             }
 
             statusMsg.innerText = 'Collection created successfully!';
-            document.getElementById('collection-title').value = '';
-            await loadCollections();
-            setTimeout(() => { statusMsg.innerText = ''; }, 2500);
+            document.getElementById('col-title').value = '';
+            setTimeout(() => { statusMsg.innerText = ''; }, 2000);
+            loadCollections();
         }
 
         async function toggleVisibility(id, currentStatus) {
@@ -335,99 +298,132 @@
                 .update({ is_visible: !currentStatus })
                 .eq('id', id);
 
-            if (error) {
-                alert('Error updating visibility: ' + error.message);
-            } else {
-                await loadCollections();
-            }
+            if (!error) loadCollections();
         }
 
         async function deleteCollection(id) {
-            if (!confirm('Are you sure you want to delete this collection?')) return;
+            if (!confirm('Are you sure you want to delete this collection? Associated tracks will become standalone singles.')) return;
 
+            // Unlink tracks first
             await _supabase.from('tracks').update({ collection_id: null }).eq('collection_id', id);
+            const { error } = await _supabase.from('collections').delete().eq('id', id);
 
-            const { error } = await _supabase
-                .from('collections')
-                .delete()
-                .eq('id', id);
+            if (!error) loadCollections();
+        }
 
-            if (error) {
-                alert('Error deleting collection: ' + error.message);
+        /* --- Reorder Modal & Drag-and-Drop Functions --- */
+        async function openReorderModal(collectionId, collectionTitle) {
+            activeCollectionId = collectionId;
+            document.getElementById('modal-album-title').innerText = `Manage: ${collectionTitle}`;
+            
+            // Fetch tracks belonging to this collection ordered by collection_sort_order
+            const { data, error } = await _supabase
+                .from('tracks')
+                .select('id, title, artwork_url, collection_sort_order')
+                .eq('collection_id', collectionId)
+                .order('collection_sort_order', { ascending: true, nullsFirst: true });
+
+            if (!error && data) {
+                activeCollectionTracks = data;
+                renderModalTracks();
+                document.getElementById('reorder-modal').classList.remove('hidden');
             } else {
-                await loadAllTracks();
-                await loadCollections();
+                alert('Could not load tracks for this collection.');
             }
         }
 
-        // Modal Track Management Functions
-        async function openTrackModal(collectionId, collectionTitle) {
-            activeCollectionId = collectionId;
-            document.getElementById('modal-title').innerText = `Songs in: ${collectionTitle}`;
-            document.getElementById('track-modal').classList.remove('hidden');
-            await renderModalTracks();
-        }
-
-        function closeTrackModal() {
-            document.getElementById('track-modal').classList.add('hidden');
+        function closeReorderModal() {
+            document.getElementById('reorder-modal').classList.add('hidden');
             activeCollectionId = null;
+            activeCollectionTracks = [];
         }
 
-        async function renderModalTracks() {
-            await loadAllTracks(); 
-            const container = document.getElementById('modal-tracks-container');
+        function closeReorderModalOnOutside(e) {
+            if (e.target.id === 'reorder-modal') closeReorderModal();
+        }
+
+        function renderModalTracks() {
+            const container = document.getElementById('modal-track-list');
             container.innerHTML = '';
 
-            if (!allTracks || allTracks.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#888; font-size:13px;">No tracks available in catalog.</p>';
+            if (activeCollectionTracks.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#888; font-size:12px; margin:20px 0;">No tracks assigned to this collection yet. Add tracks via the upload portal.</p>';
                 return;
             }
 
-            allTracks.forEach(track => {
-                const isAssigned = track.collection_id === activeCollectionId;
-                const artistName = track.artists ? track.artists.name : 'Unknown Artist';
+            activeCollectionTracks.forEach((track, index) => {
+                const card = document.createElement('div');
+                card.className = 'track-drag-card';
+                card.draggable = true;
+                card.setAttribute('data-index', index);
 
-                const row = document.createElement('div');
-                row.className = 'modal-track-row';
-                row.innerHTML = `
-                    <div class="modal-track-info">
-                        <div>${track.title}</div>
-                        <div>${artistName}</div>
+                card.innerHTML = `
+                    <span class="drag-handle">☰</span>
+                    <img src="${track.artwork_url || ''}" alt="Art">
+                    <div class="track-drag-info">
+                        <div class="track-drag-title">${track.title}</div>
                     </div>
-                    <div id="action-cell-${track.id}"></div>
                 `;
-                container.appendChild(row);
 
-                // Safely bind add/remove buttons via DOM to avoid script injection drop-outs
-                const actionCell = document.getElementById(`action-cell-${track.id}`);
-                const actionBtn = document.createElement('button');
-                actionBtn.type = 'button';
-                actionBtn.className = 'small-btn';
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('dragleave', handleDragLeave);
+                card.addEventListener('drop', handleDrop);
+                card.addEventListener('dragend', handleDragEnd);
 
-                if (isAssigned) {
-                    actionBtn.innerText = 'Remove';
-                    actionBtn.className += ' delete-btn';
-                    actionBtn.onclick = () => assignTrackToCollection(track.id, null);
-                } else {
-                    actionBtn.innerText = 'Add';
-                    actionBtn.style.background = '#ff8c00';
-                    actionBtn.style.color = '#000';
-                    actionBtn.onclick = () => assignTrackToCollection(track.id, activeCollectionId);
-                }
-                actionCell.appendChild(actionBtn);
+                container.appendChild(card);
             });
         }
 
-        async function assignTrackToCollection(trackId, collectionId) {
-            const { error } = await _supabase
-                .from('tracks')
-                .update({ collection_id: collectionId })
-                .eq('id', trackId);
+        function handleDragStart(e) {
+            draggedIndex = parseInt(this.getAttribute('data-index'));
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
 
-            if (error) {
-                alert('Error updating track assignment: ' + error.message);
-            } else {
-                await renderModalTracks();
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+        }
+
+        function handleDragLeave() {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetIndex = parseInt(this.getAttribute('data-index'));
+            
+            if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                const movedItem = activeCollectionTracks.splice(draggedIndex, 1)[0];
+                activeCollectionTracks.splice(targetIndex, 0, movedItem);
+                renderModalTracks();
+                saveCollectionOrder(true); // Auto-save on drop silently
+            }
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.track-drag-card').forEach(c => c.classList.remove('drag-over'));
+        }
+
+        async function saveCollectionOrder(isSilent = false) {
+            if (!activeCollectionId) return;
+
+            let updates = activeCollectionTracks.map((track, index) => {
+                return _supabase.from('tracks').update({ collection_sort_order: index + 1 }).eq('id', track.id);
+            });
+
+            try {
+                await Promise.all(updates);
+                if (!isSilent) {
+                    alert('Collection track order saved successfully!');
+                    closeReorderModal();
+                }
+            } catch (err) {
+                console.error(err);
+                if (!isSilent) alert('Error saving collection order.');
             }
         }
 
