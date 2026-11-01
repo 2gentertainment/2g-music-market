@@ -595,28 +595,21 @@
                 const artistTracks = masterPlaylist.filter(track => track.artists && track.artists.id === value);
                 const artistAlbums = collectionsList.filter(col => col.artist_id === value && col.type === 'album');
                 
-                const hasSingles = artistTracks.some(t => !t.collection_id);
                 const hasAlbums = artistAlbums.length > 0;
 
                 // Default initial view when clicking artist tab: show ALL their tracks
                 activePlaylist = artistTracks;
 
-                if (hasSingles && hasAlbums) {
-                    // Show sub-menu allowing user to toggle between All, Singles, and Albums
+                if (hasAlbums) {
+                    // Force sub-menu open so user can toggle between All, Singles, and Albums
                     submenuBar.classList.remove('hidden');
                     submenuBar.innerHTML = `
                         <div class="sub-tab active-sub" onclick="setArtistSubFilter('all', this)">All</div>
                         <div class="sub-tab" onclick="setArtistSubFilter('singles', this)">Singles</div>
                         <div class="sub-tab" onclick="setArtistSubFilter('albums', this)">Albums</div>
                     `;
-                } else if (hasAlbums && !hasSingles) {
-                    submenuBar.classList.remove('hidden');
-                    submenuBar.innerHTML = `<div class="sub-tab active-sub" onclick="setArtistSubFilter('albums', this)">Albums</div>`;
-                    currentArtistSubFilter = 'albums';
-                    activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => a.id === t.collection_id));
-                } else if (hasSingles && !hasAlbums) {
-                    // Only singles exist, no sub-menu needed, showing singles only
-                    activePlaylist = artistTracks.filter(t => !t.collection_id);
+                } else {
+                    submenuBar.classList.add('hidden');
                 }
             }
 
