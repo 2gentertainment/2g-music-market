@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2G Entertainment - Admin Upload Portal</title>
+    <title>2G Entertainment - Upload Track</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script>
         // Security Guard: Check session authentication
         if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
@@ -16,7 +15,6 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     </script>
-    
     <style>
         body {
             background-color: #121212;
@@ -28,28 +26,30 @@
             min-height: 100vh;
             margin: 0;
         }
-        .admin-container {
+        .admin-card {
             background: #1e1e1e;
             padding: 30px;
             border-radius: 12px;
-            width: 420px;
+            width: 440px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             border: 1px solid #333;
             max-height: 90vh;
             overflow-y: auto;
         }
-        h2 { color: #ff8c00; text-align: center; margin-top: 0; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-size: 14px; color: #aaa; }
-        input, select {
+        h2 { color: #ff8c00; text-align: center; margin-top: 0; font-size: 20px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-size: 13px; color: #aaa; }
+        input[type="text"], input[type="file"], select {
             width: 100%;
             padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #444;
             background: #111;
+            border: 1px solid #444;
             color: #fff;
+            border-radius: 6px;
             box-sizing: border-box;
+            font-size: 14px;
         }
+        input:focus, select:focus { border-color: #ff8c00; outline: none; }
         button {
             background-color: #ff8c00;
             color: #000;
@@ -59,57 +59,41 @@
             border-radius: 6px;
             cursor: pointer;
             width: 100%;
+            font-size: 14px;
             margin-top: 10px;
         }
         button:hover { background-color: #e07b00; }
-        .secondary-btn {
-            background-color: #333;
-            color: #ff8c00;
-            border: 1px solid #ff8c00;
-            margin-top: 5px;
-            padding: 8px;
-            font-size: 12px;
-        }
-        .secondary-btn:hover { background-color: #444; }
-        #status-msg { text-align: center; margin-top: 15px; font-size: 14px; color: #ff8c00; }
-        .hidden { display: none; }
-        .back-link { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #888; text-decoration: none; }
-        .back-link:hover { color: #fff; }
+        #status-msg { text-align: center; margin-top: 12px; font-size: 13px; color: #ff8c00; }
+        .link-back { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #888; text-decoration: none; }
+        .link-back:hover { color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="admin-container">
-        <h2>2G Admin Portal</h2>
-        
+    <div class="admin-card">
+        <h2>Upload New Track</h2>
+
         <div class="form-group">
             <label>Track Title</label>
-            <input type="text" id="track-title" placeholder="e.g., Summer Anthem">
-        </div>
-
-        <!-- Artist Section -->
-        <div class="form-group" id="select-artist-section">
-            <label>Select Artist</label>
-            <select id="artist-select">
-                <option value="">Loading artists...</option>
-            </select>
-            <button type="button" class="secondary-btn" onclick="toggleNewArtistForm()">+ Add New Artist</button>
-        </div>
-
-        <!-- New Artist Form (Hidden by default) -->
-        <div class="form-group hidden" id="new-artist-section">
-            <label>New Artist Name</label>
-            <input type="text" id="new-artist-name" placeholder="e.g., Lou Kain">
-            
-            <label style="margin-top: 10px;">AWeber Tag</label>
-            <input type="text" id="new-artist-tag" placeholder="e.g., lou-kain-fan">
-            
-            <button type="button" class="secondary-btn" style="background:#222; color:#fff; border-color:#555;" onclick="createNewArtist()">Save New Artist</button>
-            <button type="button" class="secondary-btn" onclick="toggleNewArtistForm()">Cancel</button>
+            <input type="text" id="track-title" placeholder="Song Name">
         </div>
 
         <div class="form-group">
-            <label>Audio File (.mp3)</label>
+            <label>Artist</label>
+            <select id="artist-select">
+                <option value="">-- Select Artist --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Album / Collection (Optional)</label>
+            <select id="track-collection">
+                <option value="">-- Standalone Single (No Album) --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Audio File (.mp3 / .wav)</label>
             <input type="file" id="audio-file" accept="audio/*">
         </div>
 
@@ -118,212 +102,155 @@
             <input type="file" id="artwork-file" accept="image/*">
         </div>
 
-        <!-- Streaming Link Inputs -->
-        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-        <p style="font-size: 13px; color: #ff8c00; margin-bottom: 15px; font-weight: bold; text-align: center;">Streaming Platform Links (Optional)</p>
+        <div class="form-group">
+            <label>Apple Music URL</label>
+            <input type="text" id="apple-url" placeholder="https://...">
+        </div>
 
         <div class="form-group">
             <label>Spotify URL</label>
-            <input type="url" id="admin-spotify" placeholder="https://spotify.com/track/...">
+            <input type="text" id="spotify-url" placeholder="https://...">
         </div>
-        <div class="form-group">
-            <label>Apple Music URL</label>
-            <input type="url" id="admin-apple" placeholder="https://music.apple.com/...">
-        </div>
+
         <div class="form-group">
             <label>Tidal URL</label>
-            <input type="url" id="admin-tidal" placeholder="https://tidal.com/track/...">
+            <input type="text" id="tidal-url" placeholder="https://...">
         </div>
+
         <div class="form-group">
             <label>YouTube URL</label>
-            <input type="url" id="admin-youtube" placeholder="https://youtube.com/watch?v=...">
+            <input type="text" id="youtube-url" placeholder="https://...">
         </div>
+
         <div class="form-group">
             <label>Pandora URL</label>
-            <input type="url" id="admin-pandora" placeholder="https://pandora.com/...">
+            <input type="text" id="pandora-url" placeholder="https://...">
         </div>
-
-        <!-- Store Link Inputs -->
-        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-        <p style="font-size: 13px; color: #ff8c00; margin-bottom: 15px; font-weight: bold; text-align: center;">Direct Store Links (Optional)</p>
 
         <div class="form-group">
-            <label>Store - Single Purchase URL</label>
-            <input type="url" id="admin-store-single" placeholder="https://yourstore.com/product/single...">
-        </div>
-        <div class="form-group">
-            <label>Store - Album Purchase URL</label>
-            <input type="url" id="admin-store-album" placeholder="https://yourstore.com/product/album...">
+            <label>Store Single URL</label>
+            <input type="text" id="store-single-url" placeholder="https://...">
         </div>
 
-        <button onclick="uploadTrack()">Upload to Supabase</button>
+        <div class="form-group">
+            <label>Store Album / Project URL</label>
+            <input type="text" id="store-album-url" placeholder="https://...">
+        </div>
+
+        <button onclick="uploadTrack()">Upload Track</button>
         <p id="status-msg"></p>
-        <a href="adminhub.html" class="back-link">← Back to Master Admin Hub</a>
+
+        <a href="adminhub.html" class="link-back">← Back to Master Admin Hub</a>
     </div>
 
     <script>
-        // Load artists into dropdown on page load
+        async function init() {
+            await loadArtists();
+            await loadCollections();
+        }
+
         async function loadArtists() {
             const { data, error } = await _supabase.from('artists').select('id, name').order('name');
-            const select = document.getElementById('artist-select');
-            
-            if (error) {
-                console.error('Error loading artists:', error);
-                select.innerHTML = '<option value="">Error loading artists</option>';
-                return;
+            if (!error && data) {
+                const select = document.getElementById('artist-select');
+                data.forEach(artist => {
+                    select.innerHTML += `<option value="${artist.id}">${artist.name}</option>`;
+                });
             }
-
-            select.innerHTML = '<option value="">-- Choose Artist --</option>';
-            data.forEach(artist => {
-                select.innerHTML += `<option value="${artist.id}">${artist.name}</option>`;
-            });
         }
 
-        // Toggle between dropdown and new artist form
-        function toggleNewArtistForm() {
-            const selectSection = document.getElementById('select-artist-section');
-            const newSection = document.getElementById('new-artist-section');
-            
-            selectSection.classList.toggle('hidden');
-            newSection.classList.toggle('hidden');
-        }
-
-        // Create a new artist on the fly
-        async function createNewArtist() {
-            const name = document.getElementById('new-artist-name').value.trim();
-            const tag = document.getElementById('new-artist-tag').value.trim();
-            const statusMsg = document.getElementById('status-msg');
-
-            if (!name || !tag) {
-                alert('Please enter both an artist name and an AWeber tag.');
-                return;
-            }
-
-            statusMsg.innerText = 'Creating new artist...';
-
+        async function loadCollections() {
             const { data, error } = await _supabase
-                .from('artists')
-                .insert([{ name: name, aweber_tag: tag }])
-                .select();
+                .from('collections')
+                .select('id, title, type')
+                .eq('is_visible', true)
+                .order('title', { ascending: true });
 
-            if (error) {
-                console.error('Error creating artist:', error);
-                statusMsg.innerText = 'Error: ' + error.message;
-                return;
+            if (!error && data) {
+                const select = document.getElementById('track-collection');
+                data.forEach(col => {
+                    const label = col.type === 'album' ? `Album: ${col.title}` : `Playlist: ${col.title}`;
+                    select.innerHTML += `<option value="${col.id}">${label}</option>`;
+                });
             }
-
-            statusMsg.innerText = 'Artist created successfully!';
-            
-            await loadArtists();
-            if (data && data.length > 0) {
-                document.getElementById('artist-select').value = data[0].id;
-            }
-
-            document.getElementById('new-artist-name').value = '';
-            document.getElementById('new-artist-tag').value = '';
-            toggleNewArtistForm();
-            setTimeout(() => { statusMsg.innerText = ''; }, 3000);
         }
 
         async function uploadTrack() {
-            const title = document.getElementById('track-title').value;
+            const title = document.getElementById('track-title').value.trim();
             const artistId = document.getElementById('artist-select').value;
+            const collectionId = document.getElementById('track-collection').value;
             const audioFile = document.getElementById('audio-file').files[0];
             const artworkFile = document.getElementById('artwork-file').files[0];
-            
-            // Get streaming and store links from form inputs
-            const spotifyUrl = document.getElementById('admin-spotify').value.trim();
-            const appleUrl = document.getElementById('admin-apple').value.trim();
-            const tidalUrl = document.getElementById('admin-tidal').value.trim();
-            const youtubeUrl = document.getElementById('admin-youtube').value.trim();
-            const pandoraUrl = document.getElementById('admin-pandora').value.trim();
-            const storeSingleUrl = document.getElementById('admin-store-single').value.trim();
-            const storeAlbumUrl = document.getElementById('admin-store-album').value.trim();
-
             const statusMsg = document.getElementById('status-msg');
 
             if (!title || !artistId || !audioFile) {
-                alert('Please fill out the title, select an artist, and pick an audio file.');
+                alert('Please enter a title, select an artist, and choose an audio file.');
                 return;
             }
 
-            statusMsg.innerText = 'Uploading files to storage...';
+            statusMsg.innerText = 'Uploading audio file...';
 
-            try {
-                // 1. Upload Audio File to Supabase Storage Bucket ('audio-tracks')
-                const audioFileName = `${Date.now()}_${audioFile.name}`;
-                const { error: audioError } = await _supabase.storage
-                    .from('audio-tracks')
-                    .upload(audioFileName, audioFile);
+            // 1. Upload Audio
+            const audioFileName = `${Date.now()}_${audioFile.name}`;
+            const { data: audioData, error: audioError } = await _supabase.storage
+                .from('audio_files')
+                .upload(audioFileName, audioFile);
 
-                if (audioError) throw audioError;
+            if (audioError) {
+                statusMsg.innerText = 'Audio upload error: ' + audioError.message;
+                return;
+            }
 
-                const { data: audioPublicData } = _supabase.storage
-                    .from('audio-tracks')
-                    .getPublicUrl(audioFileName);
+            const { data: audioPublicUrl } = _supabase.storage
+                .from('audio_files')
+                .getPublicUrl(audioFileName);
 
-                const audioPublicUrl = audioPublicData.publicUrl;
+            // 2. Upload Artwork (if provided)
+            let artworkPublicUrl = '';
+            if (artworkFile) {
+                statusMsg.innerText = 'Uploading artwork...';
+                const artFileName = `${Date.now()}_${artworkFile.name}`;
+                const { error: artError } = await _supabase.storage
+                    .from('artwork')
+                    .upload(artFileName, artworkFile);
 
-                // 2. Upload Artwork (if provided) to 'artwork' bucket
-                let artworkPublicUrl = '';
-                if (artworkFile) {
-                    const artFileName = `${Date.now()}_${artworkFile.name}`;
-                    const { error: artError } = await _supabase.storage
-                        .from('artwork')
-                        .upload(artFileName, artworkFile);
-
-                    if (artError) throw artError;
-
-                    const { data: artPublicData } = _supabase.storage
+                if (!artError) {
+                    const { data: artPub } = _supabase.storage
                         .from('artwork')
                         .getPublicUrl(artFileName);
-                    
-                    artworkPublicUrl = artPublicData.publicUrl;
+                    artworkPublicUrl = artPub.publicUrl;
                 }
-
-                statusMsg.innerText = 'Saving track to database...';
-
-                // 3. Insert record into 'tracks' table including streaming & store URLs
-                const { error: dbError } = await _supabase
-                    .from('tracks')
-                    .insert([{
-                        title: title,
-                        artist_id: artistId,
-                        audio_file_path: audioPublicUrl,
-                        artwork_url: artworkPublicUrl,
-                        spotify_url: spotifyUrl || null,
-                        apple_music_url: appleUrl || null,
-                        tidal_url: tidalUrl || null,
-                        youtube_url: youtubeUrl || null,
-                        pandora_url: pandoraUrl || null,
-                        store_single_url: storeSingleUrl || null,
-                        store_album_url: storeAlbumUrl || null
-                    }]);
-
-                if (dbError) throw dbError;
-
-                statusMsg.innerText = 'Upload successful! Track is live.';
-                setTimeout(() => {
-                    document.getElementById('track-title').value = '';
-                    document.getElementById('audio-file').value = '';
-                    document.getElementById('artwork-file').value = '';
-                    document.getElementById('admin-spotify').value = '';
-                    document.getElementById('admin-apple').value = '';
-                    document.getElementById('admin-tidal').value = '';
-                    document.getElementById('admin-youtube').value = '';
-                    document.getElementById('admin-pandora').value = '';
-                    document.getElementById('admin-store-single').value = '';
-                    document.getElementById('admin-store-album').value = '';
-                    statusMsg.innerText = '';
-                }, 3000);
-
-            } catch (err) {
-                console.error(err);
-                statusMsg.innerText = 'Error: ' + err.message;
             }
+
+            statusMsg.innerText = 'Saving to database...';
+
+            // 3. Insert Track Record with collection_id
+            const { error: dbError } = await _supabase.from('tracks').insert([{
+                title: title,
+                artist_id: parseInt(artistId),
+                collection_id: collectionId ? parseInt(collectionId) : null,
+                audio_file_path: audioPublicUrl.publicUrl,
+                artwork_url: artworkPublicUrl,
+                apple_music_url: document.getElementById('apple-url').value.trim(),
+                spotify_url: document.getElementById('spotify-url').value.trim(),
+                tidal_url: document.getElementById('tidal-url').value.trim(),
+                youtube_url: document.getElementById('youtube-url').value.trim(),
+                pandora_url: document.getElementById('pandora-url').value.trim(),
+                store_single_url: document.getElementById('store-single-url').value.trim(),
+                store_album_url: document.getElementById('store-album-url').value.trim(),
+                sort_order: 99
+            }]);
+
+            if (dbError) {
+                statusMsg.innerText = 'Database error: ' + dbError.message;
+                return;
+            }
+
+            statusMsg.innerText = 'Track uploaded and assigned successfully!';
+            setTimeout(() => { location.reload(); }, 2000);
         }
-        
-        loadArtists();
+
+        init();
     </script>
 </body>
 </html>
