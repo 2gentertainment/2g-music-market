@@ -25,7 +25,7 @@
             max-width: 480px;
             height: 100dvh;
             box-sizing: border-box;
-            padding: 16px 20px;
+            padding: 14px 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -44,9 +44,9 @@
 
         /* Balanced Square Artwork */
         .artwork-container {
-            width: 180px;
-            height: 180px;
-            margin: 6px auto;
+            width: 160px;
+            height: 160px;
+            margin: 4px auto;
             border-radius: 12px;
             overflow: hidden;
             display: flex;
@@ -64,16 +64,16 @@
 
         .track-info {
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             flex-shrink: 0;
         }
-        h3 { margin: 0 0 2px 0; font-size: 17px; color: #fff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        p { margin: 0; font-size: 13px; color: #ff8c00; font-weight: 500; }
+        h3 { margin: 0 0 2px 0; font-size: 16px; color: #fff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        p { margin: 0; font-size: 12px; color: #ff8c00; font-weight: 500; }
         
         /* Progress Bar Styles */
         .progress-container {
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
         .progress-bar {
@@ -100,25 +100,25 @@
             justify-content: space-between;
             font-size: 11px;
             color: #888;
-            margin-top: 4px;
+            margin-top: 3px;
         }
 
         .action-section { 
             display: flex; 
             gap: 10px; 
-            margin-bottom: 10px; 
+            margin-bottom: 8px; 
             flex-shrink: 0;
         }
         .main-sub-btn {
             background-color: #ff8c00;
             color: #000;
             border: none;
-            padding: 10px;
+            padding: 9px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
             flex: 1;
-            font-size: 13px;
+            font-size: 12px;
             letter-spacing: 0.5px;
         }
         .main-sub-btn:hover { background-color: #e07b00; }
@@ -127,11 +127,11 @@
             background-color: #2a2a2a;
             color: #fff;
             border: 1px solid #444;
-            padding: 10px 14px;
+            padding: 9px 14px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             transition: all 0.2s;
         }
         .stream-trigger-btn:hover { background-color: #3a3a3a; border-color: #ff8c00; }
@@ -139,17 +139,17 @@
         .sub-form {
             display: flex;
             gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
         .sub-form input {
             flex: 1;
-            padding: 10px;
+            padding: 9px;
             border-radius: 10px;
             border: 1px solid #444;
             background: #1a1a1a;
             color: #fff;
-            font-size: 16px;
+            font-size: 14px;
         }
         .sub-form button {
             background-color: #ff8c00;
@@ -159,7 +159,38 @@
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
+        }
+
+        /* Horizontal Scrolling Category / Artist Tab Bar */
+        .category-scroll-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+            scrollbar-width: none; /* Firefox */
+        }
+        .category-scroll-container::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+        
+        .cat-tab {
+            background: #1c1c1c;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cat-tab:hover { background: #2a2a2a; color: #fff; }
+        .cat-tab.active-tab {
+            background: #ff8c00;
+            color: #000;
+            border-color: #ff8c00;
         }
 
         /* Independent Scrollable Inline Playlist Drawer */
@@ -168,22 +199,10 @@
             border: 1px solid #262626;
             border-radius: 12px;
             padding: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             flex: 1;
-            min-height: 100px;
+            min-height: 90px;
             overflow-y: auto;
-        }
-        .inline-playlist-header {
-            font-size: 10px;
-            letter-spacing: 1.5px;
-            color: #777;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            background: #161616;
-            padding-bottom: 4px;
         }
         .inline-tracks-list {
             display: flex;
@@ -298,15 +317,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 6px;
+            padding-bottom: 4px;
             flex-shrink: 0;
         }
         .controls button {
             background: #1e1e1e;
             border: none;
             color: #aaa;
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -325,8 +344,8 @@
         .controls button#play-pause-btn {
             background: #ff8c00;
             color: #000;
-            width: 54px;
-            height: 54px;
+            width: 50px;
+            height: 50px;
         }
         .controls button#play-pause-btn:hover { background: #e07b00; color: #000; }
         
@@ -368,9 +387,13 @@
             </div>
         </div>
 
+        <!-- Horizontal Scrolling Category / Artist Filter Tabs -->
+        <div id="category-tabs" class="category-scroll-container">
+            <div class="cat-tab active-tab" onclick="filterCatalog('all', this)">🔥 All Songs</div>
+        </div>
+
         <!-- Independent Scrollable Inline Playlist Drawer -->
         <div class="inline-playlist-section">
-            <div class="inline-playlist-header">Up Next / Catalog</div>
             <div id="inline-tracks-container" class="inline-tracks-list"></div>
         </div>
 
@@ -386,16 +409,16 @@
             </button>
 
             <button onclick="prevTrack()" title="Previous">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
             </button>
             
             <button id="play-pause-btn" onclick="togglePlay()" title="Play/Pause">
-                <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                <svg id="pause-icon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                <svg id="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg id="pause-icon" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
             </button>
 
             <button onclick="nextTrack()" title="Next">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
             </button>
 
             <button id="repeat-btn" onclick="toggleRepeat()" title="Repeat">
@@ -433,11 +456,13 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let playlist = [];
+        let masterPlaylist = [];    // Holds all loaded tracks from Supabase
+        let activePlaylist = [];    // Holds currently filtered subset of tracks
         let currentIndex = 0;
         let isShuffled = false;
         let isRepeated = false;
-        
+        let currentFilter = 'all';
+
         const audioElement = document.getElementById('audio-element');
         const playIcon = document.getElementById('play-icon');
         const pauseIcon = document.getElementById('pause-icon');
@@ -448,7 +473,7 @@
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
-                .select('title, audio_file_path, artwork_url, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(name, aweber_tag)')
+                .select('id, title, audio_file_path, artwork_url, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(name, aweber_tag)')
                 .order('sort_order', { ascending: true, nullsFirst: false });
 
             if (error) {
@@ -458,7 +483,9 @@
             }
 
             if (data && data.length > 0) {
-                playlist = data;
+                masterPlaylist = data;
+                activePlaylist = [...masterPlaylist];
+                buildArtistTabs();
                 loadTrackData(0);
                 renderInlinePlaylist();
             } else {
@@ -466,9 +493,52 @@
             }
         }
 
+        // Dynamically build horizontal category/artist tabs from loaded tracks
+        function buildArtistTabs() {
+            const tabsContainer = document.getElementById('category-tabs');
+            // Keep the 'All Songs' tab first
+            tabsContainer.innerHTML = `<div class="cat-tab active-tab" onclick="filterCatalog('all', this)">🔥 All Songs</div>`;
+
+            // Extract unique artist names
+            const artistsMap = new Set();
+            masterPlaylist.forEach(track => {
+                if (track.artists && track.artists.name) {
+                    artistsMap.add(track.artists.name);
+                }
+            });
+
+            artistsMap.forEach(artistName => {
+                const tab = document.createElement('div');
+                tab.className = 'cat-tab';
+                tab.innerText = artistName;
+                tab.onclick = (e) => filterCatalog(artistName, tab);
+                tabsContainer.appendChild(tab);
+            });
+        }
+
+        // Filter track list by selected artist or category tab
+        function filterCatalog(filterValue, tabElement) {
+            currentFilter = filterValue;
+            
+            // Update active tab styling
+            document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active-tab'));
+            tabElement.classList.add('active-tab');
+
+            if (filterValue === 'all') {
+                activePlaylist = [...masterPlaylist];
+            } else {
+                activePlaylist = masterPlaylist.filter(track => track.artists && track.artists.name === filterValue);
+            }
+
+            if (activePlaylist.length > 0) {
+                loadTrackData(0);
+            }
+            renderInlinePlaylist();
+        }
+
         function loadTrackData(index) {
             currentIndex = index;
-            const track = playlist[currentIndex];
+            const track = activePlaylist[currentIndex];
 
             document.getElementById('track-title').innerText = track.title;
             document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Entertainment';
@@ -486,7 +556,7 @@
 
         function playTrack(index) {
             currentIndex = index;
-            const track = playlist[currentIndex];
+            const track = activePlaylist[currentIndex];
 
             document.getElementById('track-title').innerText = track.title;
             document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Entertainment';
@@ -544,22 +614,22 @@
         }
 
         function nextTrack() {
-            if (playlist.length === 0) return;
+            if (activePlaylist.length === 0) return;
             if (isShuffled) {
                 let randomIndex;
                 do {
-                    randomIndex = Math.floor(Math.random() * playlist.length);
-                } while (randomIndex === currentIndex && playlist.length > 1);
+                    randomIndex = Math.floor(Math.random() * activePlaylist.length);
+                } while (randomIndex === currentIndex && activePlaylist.length > 1);
                 currentIndex = randomIndex;
             } else {
-                currentIndex = (currentIndex + 1) % playlist.length;
+                currentIndex = (currentIndex + 1) % activePlaylist.length;
             }
             playTrack(currentIndex);
         }
 
         function prevTrack() {
-            if (playlist.length === 0) return;
-            currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+            if (activePlaylist.length === 0) return;
+            currentIndex = (currentIndex - 1 + activePlaylist.length) % activePlaylist.length;
             playTrack(currentIndex);
         }
 
@@ -589,7 +659,7 @@
         async function submitSubscriber() {
             const email = document.getElementById('subscriber-email').value.trim();
             if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
-            const currentTrack = playlist[currentIndex];
+            const currentTrack = activePlaylist[currentIndex];
             const tag = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
             alert(`Thanks for joining! Tagged as: ${tag}`);
             document.getElementById('subscriber-email').value = '';
@@ -600,7 +670,13 @@
         function renderInlinePlaylist() {
             const container = document.getElementById('inline-tracks-container');
             container.innerHTML = '';
-            playlist.forEach((track, index) => {
+            
+            if (activePlaylist.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#777; font-size:12px; margin:10px 0;">No tracks found for this selection.</p>';
+                return;
+            }
+
+            activePlaylist.forEach((track, index) => {
                 const item = document.createElement('div');
                 item.className = `playlist-item ${index === currentIndex ? 'active-track' : ''}`;
                 item.onclick = () => playTrack(index);
@@ -618,7 +694,8 @@
 
         /* Stream Modal */
         function openStreamModal() {
-            const track = playlist[currentIndex];
+            const track = activePlaylist[currentIndex];
+            if (!track) return;
             const container = document.getElementById('stream-links-container');
             container.innerHTML = '';
             const platforms = [
@@ -645,7 +722,8 @@
 
         /* Store Modal */
         function openStoreModal() {
-            const track = playlist[currentIndex];
+            const track = activePlaylist[currentIndex];
+            if (!track) return;
             const container = document.getElementById('store-links-container');
             container.innerHTML = '';
 
