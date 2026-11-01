@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<span hidden>Sumter, South Carolina</span>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -168,11 +169,11 @@
             gap: 8px;
             overflow-x: auto;
             padding-bottom: 4px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             flex-shrink: 0;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
-        .category-scroll-container::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+        .category-scroll-container::-webkit-scrollbar { display: none; }
         
         .cat-tab {
             background: #1c1c1c;
@@ -190,6 +191,37 @@
         .cat-tab.active-tab {
             background: #ff8c00;
             color: #000;
+            border-color: #ff8c00;
+        }
+        .cat-tab.playlist-tab {
+            border-color: #ff8c00;
+            color: #ff8c00;
+        }
+        .cat-tab.playlist-tab.active-tab {
+            background: #ff8c00;
+            color: #000;
+        }
+
+        /* Context-Aware Sub-Menu Bar (Singles vs Albums) */
+        .submenu-container {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+            flex-shrink: 0;
+        }
+        .sub-tab {
+            background: #161616;
+            border: 1px solid #444;
+            color: #888;
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .sub-tab.active-sub {
+            background: #333;
+            color: #fff;
             border-color: #ff8c00;
         }
 
@@ -387,10 +419,13 @@
             </div>
         </div>
 
-                <!-- Horizontal Scrolling Category / Artist Filter Tabs -->
+        <!-- Horizontal Scrolling Category / Artist Filter Tabs -->
         <div id="category-tabs" class="category-scroll-container">
-            <div class="cat-tab active-tab" onclick="filterCatalog('all', this)">All Songs</div>
+            <div class="cat-tab active-tab" onclick="filterCatalog('all', null, this)">All Songs</div>
         </div>
+
+        <!-- Context-Aware Sub-Menu Bar (Singles vs Albums) -->
+        <div id="submenu-bar" class="submenu-container hidden"></div>
 
         <!-- Independent Scrollable Inline Playlist Drawer -->
         <div class="inline-playlist-section">
@@ -456,12 +491,16 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let masterPlaylist = [];    // Holds all loaded tracks from Supabase
-        let activePlaylist = [];    // Holds currently filtered subset of tracks
+        let masterPlaylist = [];    
+        let activePlaylist = [];    
+        let collectionsList = [];   
         let currentIndex = 0;
         let isShuffled = false;
         let isRepeated = false;
-        let currentFilter = 'all';
+        let currentFilterType = 'all'; // 'all', 'artist', 'playlist'
+        let currentFilterValue = null; // artist name or collection id
+        let currentArtistSubFilter = 'all'; // 'all', 'singles', 'albums'
+        let activeArtistData = null;
 
         const audioElement = document.getElementById('audio-element');
         const playIcon = document.getElementById('play-icon');
@@ -470,64 +509,138 @@
         const currentTimeEl = document.getElementById('current-time');
         const totalDurationEl = document.getElementById('total-duration');
 
+        async function initPlayer() {
+            await Promise.all([loadTracks(), loadCollections()]);
+            buildTabs();
+            if (activePlaylist.length > 0) {
+                loadTrackData(0);
+            }
+            renderInlinePlaylist();
+        }
+
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
-                .select('id, title, audio_file_path, artwork_url, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(name, aweber_tag)')
+                .select('id, title, audio_file_path, artwork_url, collection_id, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(id, name, aweber_tag)')
                 .order('sort_order', { ascending: true, nullsFirst: false });
 
-            if (error) {
-                console.error('Error loading tracks:', error);
-                document.getElementById('track-title').innerText = 'Error loading tracks';
-                return;
-            }
-
-            if (data && data.length > 0) {
+            if (!error && data) {
                 masterPlaylist = data;
                 activePlaylist = [...masterPlaylist];
-                buildArtistTabs();
-                loadTrackData(0);
-                renderInlinePlaylist();
-            } else {
-                document.getElementById('track-title').innerText = 'No tracks found';
             }
         }
 
-        // Dynamically build horizontal category/artist tabs from loaded tracks
-        function buildArtistTabs() {
-            const tabsContainer = document.getElementById('category-tabs');
-            // Keep the 'All Songs' tab first
-            tabsContainer.innerHTML = `<div class="cat-tab active-tab" onclick="filterCatalog('all', this)">All Songs</div>`;
+        async function loadCollections() {
+            const { data, error } = await _supabase
+                .from('collections')
+                .select('id, title, type, is_visible, sort_order, artist_id')
+                .eq('is_visible', true)
+                .order('sort_order', { ascending: true, nullsFirst: true });
 
-            // Extract unique artist names
-            const artistsMap = new Set();
+            if (!error && data) {
+                collectionsList = data;
+            }
+        }
+
+        // Build Tabs: All Songs -> Artist Tabs -> Curated Playlists Tabs
+        function buildTabs() {
+            const tabsContainer = document.getElementById('category-tabs');
+            tabsContainer.innerHTML = `<div class="cat-tab active-tab" onclick="filterCatalog('all', null, this)">All Songs</div>`;
+
+            // Unique Artists
+            const artistsMap = new Map();
             masterPlaylist.forEach(track => {
-                if (track.artists && track.artists.name) {
-                    artistsMap.add(track.artists.name);
+                if (track.artists && track.artists.id) {
+                    artistsMap.set(track.artists.id, track.artists.name);
                 }
             });
 
-            artistsMap.forEach(artistName => {
+            artistsMap.forEach((artistName, artistId) => {
                 const tab = document.createElement('div');
                 tab.className = 'cat-tab';
                 tab.innerText = artistName;
-                tab.onclick = (e) => filterCatalog(artistName, tab);
+                tab.onclick = () => filterCatalog('artist', artistId, tab);
                 tabsContainer.appendChild(tab);
+            });
+
+            // General Curated Playlists (type = 'playlist', artist_id is null)
+            collectionsList.forEach(col => {
+                if (col.type === 'playlist' && !col.artist_id) {
+                    const tab = document.createElement('div');
+                    tab.className = 'cat-tab playlist-tab';
+                    tab.innerText = col.title;
+                    tab.onclick = () => filterCatalog('playlist', col.id, tab);
+                    tabsContainer.appendChild(tab);
+                }
             });
         }
 
-        // Filter track list by selected artist or category tab
-        function filterCatalog(filterValue, tabElement) {
-            currentFilter = filterValue;
-            
-            // Update active tab styling
-            document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active-tab'));
-            tabElement.classList.add('active-tab');
+        // Filter Catalog with Smart Artist Sub-Menu Logic
+        function filterCatalog(type, value, tabElement) {
+            currentFilterType = type;
+            currentFilterValue = value;
+            currentArtistSubFilter = 'all';
 
-            if (filterValue === 'all') {
+            document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active-tab'));
+            if (tabElement) tabElement.classList.add('active-tab');
+
+            const submenuBar = document.getElementById('submenu-bar');
+            submenuBar.classList.add('hidden');
+            submenuBar.innerHTML = '';
+
+            if (type === 'all') {
                 activePlaylist = [...masterPlaylist];
-            } else {
-                activePlaylist = masterPlaylist.filter(track => track.artists && track.artists.name === filterValue);
+            } else if (type === 'playlist') {
+                activePlaylist = masterPlaylist.filter(track => track.collection_id === value);
+            } else if (type === 'artist') {
+                // Check if artist has both singles (collection_id is null) and albums (collection_id points to an album collection)
+                const artistTracks = masterPlaylist.filter(track => track.artists && track.artists.id === value);
+                const artistAlbums = collectionsList.filter(col => col.artist_id === value && col.type === 'album');
+                const hasSingles = artistTracks.some(t => !t.collection_id);
+                const hasAlbums = artistAlbums.length > 0;
+
+                if (hasSingles && hasAlbums) {
+                    // Show context-aware sub-menu ("Singles" & "Albums")
+                    submenuBar.classList.remove('hidden');
+                    submenuBar.innerHTML = `
+                        <div class="sub-tab active-sub" onclick="setArtistSubFilter('all', this)">All</div>
+                        <div class="sub-tab" onclick="setArtistSubFilter('singles', this)">Singles</div>
+                        <div class="sub-tab" onclick="setArtistSubFilter('albums', this)">Albums</div>
+                    `;
+                    activePlaylist = artistTracks;
+                } else if (hasAlbums && !hasSingles) {
+                    // Only albums available
+                    submenuBar.classList.remove('hidden');
+                    submenuBar.innerHTML = `<div class="sub-tab active-sub" onclick="setArtistSubFilter('albums', this)">Albums</div>`;
+                    currentArtistSubFilter = 'albums';
+                    activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => a.id === t.collection_id));
+                } else {
+                    // Only singles available, skip sub-menu completely!
+                    activePlaylist = artistTracks.filter(t => !t.collection_id);
+                }
+            }
+
+            if (activePlaylist.length > 0) {
+                loadTrackData(0);
+            }
+            renderInlinePlaylist();
+        }
+
+        // Handle clicking Singles vs Albums sub-menu
+        function setArtistSubFilter(subType, subTabElement) {
+            currentArtistSubFilter = subType;
+            document.querySelectorAll('.sub-tab').forEach(st => st.classList.remove('active-sub'));
+            subTabElement.classList.add('active-sub');
+
+            const artistTracks = masterPlaylist.filter(track => track.artists && track.artists.id === currentFilterValue);
+            const artistAlbums = collectionsList.filter(col => col.artist_id === currentFilterValue && col.type === 'album');
+
+            if (subType === 'all') {
+                activePlaylist = artistTracks;
+            } else if (subType === 'singles') {
+                activePlaylist = artistTracks.filter(t => !t.collection_id);
+            } else if (subType === 'albums') {
+                activePlaylist = masterPlaylist.filter(t => t.collection_id && artistAlbums.some(a => a.id === t.collection_id));
             }
 
             if (activePlaylist.length > 0) {
@@ -753,12 +866,13 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
+            document.getElementById('store-modal').classList.add('hidden'); // default state check
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
         function closeStoreModalOnOutside(e) { if (e.target.id === 'store-modal') closeStoreModal(); }
 
-        loadTracks();
+        initPlayer();
     </script>
 </body>
 </html>
