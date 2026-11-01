@@ -6,9 +6,9 @@
     <title>2G Entertainment - Admin Upload Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-       <script>
-        // Security Guard: Check both localStorage and sessionStorage for auth
-        if (localStorage.getItem('2g_admin_auth') !== 'true' && sessionStorage.getItem('2g_admin_auth') !== 'true') {
+    <script>
+        // Security Guard: Check session authentication
+        if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
             window.location.href = 'adminhub.html';
         }
 
@@ -16,7 +16,6 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     </script>
-
     
     <style>
         body {
@@ -74,6 +73,8 @@
         .secondary-btn:hover { background-color: #444; }
         #status-msg { text-align: center; margin-top: 15px; font-size: 14px; color: #ff8c00; }
         .hidden { display: none; }
+        .back-link { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #888; text-decoration: none; }
+        .back-link:hover { color: #fff; }
     </style>
 </head>
 <body>
@@ -157,13 +158,10 @@
 
         <button onclick="uploadTrack()">Upload to Supabase</button>
         <p id="status-msg"></p>
+        <a href="adminhub.html" class="back-link">← Back to Master Admin Hub</a>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://chhwujiajdhaihupvuix.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         // Load artists into dropdown on page load
         async function loadArtists() {
             const { data, error } = await _supabase.from('artists').select('id, name').order('name');
@@ -254,31 +252,33 @@
             try {
                 // 1. Upload Audio File to Supabase Storage Bucket ('audio-tracks')
                 const audioFileName = `${Date.now()}_${audioFile.name}`;
-                const { data: audioData, error: audioError } = await _supabase.storage
+                const { error: audioError } = await _supabase.storage
                     .from('audio-tracks')
                     .upload(audioFileName, audioFile);
 
                 if (audioError) throw audioError;
 
-                const { data: audioPublicUrl } = _supabase.storage
+                const { data: audioPublicData } = _supabase.storage
                     .from('audio-tracks')
                     .getPublicUrl(audioFileName);
+
+                const audioPublicUrl = audioPublicData.publicUrl;
 
                 // 2. Upload Artwork (if provided) to 'artwork' bucket
                 let artworkPublicUrl = '';
                 if (artworkFile) {
                     const artFileName = `${Date.now()}_${artworkFile.name}`;
-                    const { data: artData, error: artError } = await _supabase.storage
+                    const { error: artError } = await _supabase.storage
                         .from('artwork')
                         .upload(artFileName, artworkFile);
 
                     if (artError) throw artError;
 
-                    const { data: artPublicUrl } = _supabase.storage
+                    const { data: artPublicData } = _supabase.storage
                         .from('artwork')
                         .getPublicUrl(artFileName);
                     
-                    artworkPublicUrl = artPublicUrl.publicUrl;
+                    artworkPublicUrl = artPublicData.publicUrl;
                 }
 
                 statusMsg.innerText = 'Saving track to database...';
@@ -289,7 +289,7 @@
                     .insert([{
                         title: title,
                         artist_id: artistId,
-                        audio_file_path: audioPublicUrl.publicUrl,
+                        audio_file_path: audioPublicUrl,
                         artwork_url: artworkPublicUrl,
                         spotify_url: spotifyUrl || null,
                         apple_music_url: appleUrl || null,
@@ -322,6 +322,7 @@
                 statusMsg.innerText = 'Error: ' + err.message;
             }
         }
+        
         loadArtists();
     </script>
 </body>
