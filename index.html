@@ -448,7 +448,8 @@
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
-                .select('title, audio_file_path, artwork_url, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(name, aweber_tag)');
+                .select('title, audio_file_path, artwork_url, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(name, aweber_tag)')
+                .order('sort_order', { ascending: true, nullsFirst: false });
 
             if (error) {
                 console.error('Error loading tracks:', error);
@@ -642,7 +643,7 @@
         function closeStreamModal() { document.getElementById('stream-modal').classList.add('hidden'); }
         function closeStreamModalOnOutside(e) { if (e.target.id === 'stream-modal') closeStreamModal(); }
 
-        /* Store Modal (Clean SVGs instead of Emojis) */
+        /* Store Modal */
         function openStoreModal() {
             const track = playlist[currentIndex];
             const container = document.getElementById('store-links-container');
