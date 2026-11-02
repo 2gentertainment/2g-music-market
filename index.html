@@ -859,11 +859,11 @@
             const currentTrack = activePlaylist[currentIndex];
             const rawTagString = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
 
-            // Construct a visible test form that targets a new tab (_blank)
+            // Construct a native hidden form submission targeting a background iframe (seamless, no redirect)
             const form = document.createElement('form');
             form.action = 'https://www.aweber.com/scripts/addlead.pl';
             form.method = 'POST';
-            form.target = '_blank';
+            form.target = 'hidden-aweber-iframe';
             form.style.display = 'none';
 
             const fields = {
@@ -885,7 +885,7 @@
                 form.appendChild(input);
             }
 
-            // Split comma-separated tags and append cleanly
+            // Split comma-separated tags, strictly trim whitespace, and append using AWeber's indexed tag format
             if (rawTagString) {
                 const tagsArray = rawTagString.split(',').map(t => t.trim()).filter(t => t.length > 0);
                 tagsArray.forEach((cleanTag, index) => {
@@ -897,11 +897,20 @@
                 });
             }
 
+            let iframe = document.getElementById('hidden-aweber-iframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'hidden-aweber-iframe';
+                iframe.name = 'hidden-aweber-iframe';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+            }
+
             document.body.appendChild(form);
             form.submit();
             document.body.removeChild(form);
 
-            alert(`Submitting to AWeber... Check the new tab that opens! Tagged as: ${rawTagString}`);
+            alert(`Thanks for joining! Tagged as: ${rawTagString}`);
             emailInput.value = '';
             hideSubscribeForm();
         }
