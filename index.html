@@ -859,11 +859,11 @@
             const currentTrack = activePlaylist[currentIndex];
             const rawTagString = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
 
-            // Construct a native hidden form matching AWeber's exact generator specification
+            // Construct a visible test form that targets a new tab (_blank)
             const form = document.createElement('form');
             form.action = 'https://www.aweber.com/scripts/addlead.pl';
             form.method = 'POST';
-            form.target = 'hidden-aweber-iframe';
+            form.target = '_blank';
             form.style.display = 'none';
 
             const fields = {
@@ -885,7 +885,7 @@
                 form.appendChild(input);
             }
 
-            // Split comma-separated tags, strictly trim whitespace, and append using AWeber's exact tag hash format
+            // Split comma-separated tags and append cleanly
             if (rawTagString) {
                 const tagsArray = rawTagString.split(',').map(t => t.trim()).filter(t => t.length > 0);
                 tagsArray.forEach((cleanTag, index) => {
@@ -897,20 +897,11 @@
                 });
             }
 
-            let iframe = document.getElementById('hidden-aweber-iframe');
-            if (!iframe) {
-                iframe = document.createElement('iframe');
-                iframe.id = 'hidden-aweber-iframe';
-                iframe.name = 'hidden-aweber-iframe';
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-            }
-
             document.body.appendChild(form);
             form.submit();
             document.body.removeChild(form);
 
-            alert(`Thanks for joining! Tagged as: ${rawTagString}`);
+            alert(`Submitting to AWeber... Check the new tab that opens! Tagged as: ${rawTagString}`);
             emailInput.value = '';
             hideSubscribeForm();
         }
@@ -987,7 +978,7 @@
                 `;
                 container.appendChild(a);
             }
-            if        (track.store_album_url && track.store_album_url.trim() !== '') {
+            if (track.store_album_url && track.store_album_url.trim() !== '') {
                 count++;
                 const a = document.createElement('a');
                 a.href = track.store_album_url; a.target = '_blank'; a.className = 'store-link-item album-btn';
@@ -998,11 +989,11 @@
                 container.appendChild(a);
             }
 
-            if (count ===0) {
+            if (count === 0) {
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
-            document.getElementById('store-modal').classList.add('hidden');
+            document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
         function closeStoreModalOnOutside(e) { if (e.target.id === 'store-modal') closeStoreModal(); }
