@@ -390,7 +390,7 @@
 <body>
 
     <div class="player-card">
-        <div class="player-header">2G Entertainment</div>
+        <div class="player-header">2G Music Market</div>
 
         <div class="artwork-container">
             <img id="track-artwork" src="" alt="Artwork">
@@ -398,7 +398,7 @@
 
         <div class="track-info">
             <h3 id="track-title">Loading track...</h3>
-            <p id="artist-name">2G Entertainment</p>
+            <p id="artist-name">2G Music Market</p>
         </div>
 
         <!-- Song Progress Bar & Timestamps -->
@@ -697,7 +697,7 @@
 
             currentPlayingTrackId = track.id;
             document.getElementById('track-title').innerText = track.title;
-            document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Entertainment';
+            document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Music Market';
             document.getElementById('track-artwork').src = track.artwork_url || '';
             
             audioElement.src = track.audio_file_path;
@@ -716,7 +716,7 @@
 
             currentPlayingTrackId = track.id;
             document.getElementById('track-title').innerText = track.title;
-            document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Entertainment';
+            document.getElementById('artist-name').innerText = track.artists ? track.artists.name : '2G Music Market';
             document.getElementById('track-artwork').src = track.artwork_url || '';
             
             audioElement.src = track.audio_file_path;
@@ -859,7 +859,7 @@
             const currentTrack = activePlaylist[currentIndex];
             const rawTagString = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
 
-            // Construct a native hidden form submission matching AWeber's exact generator specification
+            // Construct a native hidden form matching AWeber's exact generator specification
             const form = document.createElement('form');
             form.action = 'https://www.aweber.com/scripts/addlead.pl';
             form.method = 'POST';
@@ -873,6 +873,7 @@
                 'meta_adtracking': '2G_PWA_Player',
                 'meta_message': '1',
                 'meta_required': 'email',
+                'name': 'PWA Fan',
                 'email': email
             };
 
@@ -884,7 +885,7 @@
                 form.appendChild(input);
             }
 
-            // Split comma-separated tags, strictly trim them, and append using AWeber's indexed tag format
+            // Split comma-separated tags, strictly trim whitespace, and append using AWeber's exact tag hash format
             if (rawTagString) {
                 const tagsArray = rawTagString.split(',').map(t => t.trim()).filter(t => t.length > 0);
                 tagsArray.forEach((cleanTag, index) => {
@@ -893,12 +894,6 @@
                     tagInput.name = `tag_11082214${index}`;
                     tagInput.value = cleanTag;
                     form.appendChild(tagInput);
-
-                    const fallbackInput = document.createElement('input');
-                    fallbackInput.type = 'hidden';
-                    fallbackInput.name = 'tag';
-                    fallbackInput.value = cleanTag;
-                    form.appendChild(fallbackInput);
                 });
             }
 
@@ -939,7 +934,7 @@
                     <img src="${track.artwork_url || ''}" alt="Art">
                     <div class="playlist-item-info">
                         <div class="playlist-item-title">${track.title}</div>
-                        <div class="playlist-item-artist">${track.artists ? track.artists.name : '2G Entertainment'}</div>
+                        <div class="playlist-item-artist">${track.artists ? track.artists.name : '2G Music Market'}</div>
                     </div>
                 `;
                 container.appendChild(item);
@@ -992,7 +987,7 @@
                 `;
                 container.appendChild(a);
             }
-            if (track.store_album_url && track.store_album_url.trim() !== '') {
+            if        (track.store_album_url && track.store_album_url.trim() !== '') {
                 count++;
                 const a = document.createElement('a');
                 a.href = track.store_album_url; a.target = '_blank'; a.className = 'store-link-item album-btn';
@@ -1003,11 +998,11 @@
                 container.appendChild(a);
             }
 
-            if (count === 0) {
+            if (count ===0) {
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
-            document.getElementById('store-modal').classList.remove('hidden');
+            document.getElementById('store-modal').classList.add('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
         function closeStoreModalOnOutside(e) { if (e.target.id === 'store-modal') closeStoreModal(); }
