@@ -41,67 +41,109 @@
             overflow: hidden;
         }
 
+        /* Top Header Row with Collapsible Search Icon */
+        .player-header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            flex-shrink: 0;
+            height: 24px;
+        }
+
         .player-header {
             text-align: center;
             font-size: 11px;
             letter-spacing: 2px;
             color: #666;
             text-transform: uppercase;
-            padding-top: 2px;
-            flex-shrink: 0;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            pointer-events: none;
         }
 
-        /* Live Search Widget Styles */
+        /* Collapsible Search Widget Styles */
         .search-wrapper {
             position: relative;
-            width: 100%;
-            margin: 6px 0;
-            flex-shrink: 0;
-            z-index: 500;
+            z-index: 600;
+        }
+
+        .search-toggle-btn {
+            background: #1c1c1c;
+            border: 1px solid #333;
+            color: #ff8c00;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .search-toggle-btn:hover {
+            background: #2a2a2a;
+            border-color: #ff8c00;
         }
 
         .search-input-container {
-            position: relative;
-            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 260px;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .search-wrapper.active .search-input-container {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .search-wrapper.active .search-toggle-btn {
+            opacity: 0;
+            pointer-events: none;
         }
 
         #portalSearchInput {
             width: 100%;
-            padding: 10px 36px 10px 14px;
-            background-color: #000000;
-            border: 1px solid #333333;
+            padding: 7px 32px 7px 12px;
+            background-color: #1a1a1a;
+            border: 1px solid #ff8c00;
             border-radius: 8px;
             color: #FFFFFF;
-            font-size: 13px;
+            font-size: 12px;
             outline: none;
             box-sizing: border-box;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
-        #portalSearchInput:focus {
-            border-color: #ff8c00;
-            box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2);
-        }
-
-        .search-icon {
+        .search-icon-inside {
             position: absolute;
-            right: 12px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            color: #777777;
+            color: #ff8c00;
             pointer-events: none;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .search-results-dropdown {
             position: absolute;
-            top: calc(100% + 4px);
+            top: calc(100% + 6px);
             left: 0;
             width: 100%;
             background-color: #161616;
             border: 1px solid #2e2e2e;
             border-radius: 8px;
-            max-height: 240px;
+            max-height: 220px;
             overflow-y: auto;
             z-index: 999;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
@@ -114,8 +156,8 @@
         .search-result-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
+            gap: 8px;
+            padding: 8px 10px;
             border-bottom: 1px solid #1f1f1f;
             cursor: pointer;
             transition: background-color 0.15s ease;
@@ -130,8 +172,8 @@
         }
 
         .search-result-thumb {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             object-fit: cover;
             border-radius: 4px;
             background-color: #222222;
@@ -147,7 +189,7 @@
 
         .search-result-title {
             color: #FFFFFF;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             white-space: nowrap;
             overflow: hidden;
@@ -156,17 +198,17 @@
 
         .search-result-artist {
             color: #ff8c00;
-            font-size: 11px;
+            font-size: 10px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .search-no-results {
-            padding: 12px;
+            padding: 10px;
             text-align: center;
             color: #777777;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         /* Balanced Square Artwork */
@@ -558,21 +600,26 @@
 <body>
 
     <div class="player-card">
-        <div class="player-header">2G Music Market</div>
-
-        <!-- Live Search Input Widget -->
-        <div class="search-wrapper">
-            <div class="search-input-container">
-                <input 
-                    type="text" 
-                    id="portalSearchInput" 
-                    placeholder="Search tracks or artists..." 
-                    autocomplete="off"
-                    spellcheck="false"
-                >
-                <span class="search-icon">🔍</span>
+        <!-- Top Header Row with Collapsible Search Icon in Top Left -->
+        <div class="player-header-container">
+            <div class="search-wrapper" id="searchWrapper">
+                <button class="search-toggle-btn" onclick="openSearch(event)" title="Search Tracks">
+                    🔍
+                </button>
+                <div class="search-input-container">
+                    <input 
+                        type="text" 
+                        id="portalSearchInput" 
+                        placeholder="Search tracks or artists..." 
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <span class="search-icon-inside">🔍</span>
+                </div>
+                <div id="portalSearchResults" class="search-results-dropdown hidden"></div>
             </div>
-            <div id="portalSearchResults" class="search-results-dropdown hidden"></div>
+            
+            <div class="player-header">2G Music Market</div>
         </div>
 
         <div class="artwork-container">
@@ -725,20 +772,16 @@
             await Promise.all([loadTracks(), loadCollections()]);
             buildTabs();
 
-            // Direct slug-based filtering from URL parameter (?artist=jair)
             if (targetArtistParam) {
                 const cleanSlug = targetArtistParam.toLowerCase().trim();
-                
                 const filteredTracks = masterPlaylist.filter(track => 
                     track.artists && track.artists.slug && track.artists.slug.toLowerCase() === cleanSlug
                 );
-
                 if (filteredTracks.length > 0) {
                     activePlaylist = filteredTracks;
                 }
             }
 
-            // If a specific track ID was shared in URL, splice it right to index 0 and update social preview card!
             if (targetTrackParam) {
                 const trackIndex = activePlaylist.findIndex(t => String(t.id) === String(targetTrackParam));
                 if (trackIndex !== -1) {
@@ -754,7 +797,6 @@
             renderInlinePlaylist();
         }
 
-        // Dynamic Open Graph Meta Tag Updater for Social Sharing Previews
         function updateSocialMeta(title, artist, artworkUrl) {
             document.getElementById('og-title').setAttribute('content', `${title} - ${artist}`);
             document.getElementById('og-desc').setAttribute('content', 'Stream or purchase directly on 2G Music Market');
@@ -788,12 +830,10 @@
             }
         }
 
-        // Build Tabs: All Songs -> Artist Tabs -> Curated Playlists Tabs
         function buildTabs() {
             const tabsContainer = document.getElementById('category-tabs');
             tabsContainer.innerHTML = `<div class="cat-tab active-tab" onclick="filterCatalog('all', null, this)">All Songs</div>`;
 
-            // Unique Artists
             const artistsMap = new Map();
             masterPlaylist.forEach(track => {
                 if (track.artists && track.artists.id) {
@@ -809,7 +849,6 @@
                 tabsContainer.appendChild(tab);
             });
 
-            // General Curated Playlists (type = 'playlist', artist_id is null)
             collectionsList.forEach(col => {
                 if (col.type === 'playlist' && !col.artist_id) {
                     const tab = document.createElement('div');
@@ -821,7 +860,6 @@
             });
         }
 
-        // Filter Catalog: Switch view without disrupting playback
         function filterCatalog(type, value, tabElement) {
             currentFilterType = type;
             currentFilterValue = value;
@@ -847,8 +885,6 @@
                 renderInlinePlaylist();
             } else if (type === 'artist') {
                 const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(value));
-                const artistAlbums = collectionsList.filter(col => String(col.artist_id) === String(value) && col.type === 'album');
-                
                 const hasSingles = artistTracks.some(t => !t.collection_id);
 
                 submenuBar.classList.remove('hidden');
@@ -867,13 +903,11 @@
             resetShufflePool();
         }
 
-        // Handle clicking "Singles" or "Albums" block under an artist
         function handleArtistSubMenu(subType, artistId) {
             document.querySelectorAll('.sub-tab').forEach(st => st.classList.remove('active-sub'));
             event.target.classList.add('active-sub');
 
             const artistTracks = masterPlaylist.filter(track => track.artists && String(track.artists.id) === String(artistId));
-            
             const artistAlbums = collectionsList.filter(col => {
                 const matchesColArtist = col.artist_id && String(col.artist_id) === String(artistId);
                 const isAlbumType = col.type && col.type.toLowerCase() === 'album';
@@ -890,7 +924,6 @@
             resetShufflePool();
         }
 
-        // Render the list of album projects
         function renderAlbumList(albums, artistTracks) {
             const container = document.getElementById('inline-tracks-container');
             container.innerHTML = '';
@@ -908,7 +941,7 @@
 
                 item.innerHTML = `
                     <div class="playlist-item-info" style="padding: 4px 0;">
-                        <div class="playlist-item-title">📁 ${album.title}</div>
+                        <div class="playlist-item-title">📁 ${escapeHtml(album.title)}</div>
                         <div class="playlist-item-artist">${albumTracksCount} track${albumTracksCount === 1 ? '' : 's'}</div>
                     </div>
                 `;
@@ -916,7 +949,6 @@
             });
         }
 
-        // When a specific album is clicked, switch view to its tracks sorted strictly by collection_sort_order
         function selectAlbum(albumId, artistTracks) {
             activePlaylist = artistTracks
                 .filter(t => String(t.collection_id) === String(albumId))
@@ -974,7 +1006,6 @@
             renderInlinePlaylist();
         }
 
-        // Conditional Action Button Evaluator ("STREAM NOW" + Brand Color Rotation & "Buy: $price" Button)
         function updateActiveTrackActions(track) {
             const streamBtn = document.getElementById('dynamic-stream-btn');
             const streamContainer = document.getElementById('stream-content-display');
@@ -986,7 +1017,6 @@
                 iconRotationInterval = null;
             }
 
-            // 1. Evaluate Streaming Links & Brand Colors (Starts with "STREAM NOW")
             const availablePlatforms = [];
             if (track.apple_music_url && track.apple_music_url.trim() !== '') availablePlatforms.push('Apple Music');
             if (track.spotify_url && track.spotify_url.trim() !== '') availablePlatforms.push('Spotify');
@@ -998,8 +1028,6 @@
                 streamBtn.classList.add('hidden');
             } else {
                 streamBtn.classList.remove('hidden');
-                
-                // Build slides: Slide 0 is "STREAM NOW" (default white), followed by platforms with their brand colors
                 const slides = [{ type: 'cta', text: 'STREAM NOW', color: '#ffffff' }];
                 availablePlatforms.forEach(p => slides.push({ type: 'platform', text: p, color: platformColors[p] || '#ffffff' }));
 
@@ -1015,7 +1043,6 @@
                 }
             }
 
-            // 2. Evaluate Green Purchase Button ("Buy: $price")
             if (track.price !== null && track.price !== undefined && track.price !== '') {
                 buyBtn.classList.remove('hidden');
                 buyPriceDisplay.innerText = `$${Number(track.price).toFixed(2)}`;
@@ -1064,7 +1091,6 @@
             return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
-        // --- Optimized No-Repeat Shuffle Logic ---
         function resetShufflePool() {
             shufflePool = [];
             for (let i = 0; i < activePlaylist.length; i++) {
@@ -1080,7 +1106,6 @@
 
         function nextTrack() {
             if (activePlaylist.length === 0) return;
-            
             if (isShuffled) {
                 if (shufflePool.length === 0) {
                     resetShufflePool();
@@ -1205,9 +1230,8 @@
             hideSubscribeForm();
         }
 
-        // Share Track Function (Copies raw deep-link URL directly and updates social preview meta tags)
         function shareTrack(event, trackId) {
-            event.stopPropagation(); // Prevent track from playing when clicking share
+            event.stopPropagation();
             const track = activePlaylist.find(t => t.id === trackId);
             if (!track) return;
 
@@ -1215,9 +1239,7 @@
             const shareUrl = `${window.location.origin}${window.location.pathname}?artist=${artistSlug}&track=${track.id}`;
 
             if (navigator.share) {
-                navigator.share({
-                    url: shareUrl,
-                }).catch(err => console.log('Error sharing:', err));
+                navigator.share({ url: shareUrl }).catch(err => console.log('Error sharing:', err));
             } else {
                 navigator.clipboard.writeText(shareUrl).then(() => {
                     alert('Share link copied to clipboard!');
@@ -1242,7 +1264,6 @@
                 item.className = `playlist-item ${isActive ? 'active-track' : ''}`;
                 item.onclick = () => playTrack(index);
 
-                // Inject the orange Share button EXCLUSIVELY on the currently active track
                 let shareButtonHtml = '';
                 if (isActive) {
                     shareButtonHtml = `<button class="track-share-btn" onclick="shareTrack(event, '${track.id}')">Share</button>`;
@@ -1260,9 +1281,16 @@
             });
         }
 
-        /* --- Live Search Functionality Integration --- */
+        /* --- Collapsible Search Widget Logic --- */
+        const searchWrapper = document.getElementById('searchWrapper');
         const searchInput = document.getElementById('portalSearchInput');
         const resultsContainer = document.getElementById('portalSearchResults');
+
+        function openSearch(e) {
+            e.stopPropagation();
+            searchWrapper.classList.add('active');
+            searchInput.focus();
+        }
 
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.trim().toLowerCase();
@@ -1272,7 +1300,6 @@
                 return;
             }
 
-            // Search against the complete master catalog
             const matches = masterPlaylist.filter(item => {
                 const titleMatch = item.title && item.title.toLowerCase().includes(query);
                 const artistMatch = item.artists && item.artists.name && item.artists.name.toLowerCase().includes(query);
@@ -1314,8 +1341,8 @@
 
             searchInput.value = '';
             hideSearchResults();
+            searchWrapper.classList.remove('active');
 
-            // Check if track exists in active playlist; if not, switch active playlist to master so it plays smoothly
             let activeIndex = activePlaylist.findIndex(t => String(t.id) === String(id));
             if (activeIndex === -1) {
                 activePlaylist = [...masterPlaylist];
@@ -1328,10 +1355,14 @@
             }
         }
 
-        // Close search dropdown when clicking outside
+        // Close/collapse search when clicking outside
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-wrapper')) {
+            if (!searchWrapper.contains(e.target)) {
                 hideSearchResults();
+                // Only collapse if the search input is empty
+                if (searchInput.value.trim() === '') {
+                    searchWrapper.classList.remove('active');
+                }
             }
         });
 
