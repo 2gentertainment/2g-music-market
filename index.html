@@ -794,6 +794,7 @@
                 loadTrackData(0);
             }
             renderInlinePlaylist();
+            setupMediaSession();
         }
 
         function updateSocialMeta(title, artist, artworkUrl) {
@@ -981,6 +982,7 @@
 
             updateActiveTrackActions(track);
             renderInlinePlaylist();
+            updateMediaSessionMetadata(track);
         }
 
         function playTrack(index) {
@@ -1003,6 +1005,31 @@
 
             updateActiveTrackActions(track);
             renderInlinePlaylist();
+            updateMediaSessionMetadata(track);
+        }
+
+        // --- Media Session API Integration for Lock Screen / Headphone Controls ---
+        function setupMediaSession() {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
+                navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
+                navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
+                navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
+            }
+        }
+
+        function updateMediaSessionMetadata(track) {
+            if ('mediaSession' in navigator) {
+                const artistName = track.artists ? track.artists.name : '2G Music Market';
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: track.title,
+                    artist: artistName,
+                    album: '2G Music Market',
+                    artwork: [
+                        { src: track.artwork_url || 'https://www.2g-ent.com/uploads/2/7/5/9/27593217/img-6930_orig.jpeg', sizes: '512x512', type: 'image/jpeg' }
+                    ]
+                });
+            }
         }
 
         function updateActiveTrackActions(track) {
@@ -1354,7 +1381,6 @@
             }
         }
 
-        // Collapse search back to icon when clicking outside
         document.addEventListener('click', (e) => {
             if (!searchWrapper.contains(e.target)) {
                 hideSearchResults();
@@ -1430,7 +1456,6 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
-            document.getElementById('store-modal').classList.add('hidden'); // Fixed store modal close toggle check
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
