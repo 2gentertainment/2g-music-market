@@ -522,25 +522,24 @@
             await Promise.all([loadTracks(), loadCollections()]);
             buildTabs();
 
-            // If an artist filter parameter was passed in the URL, auto-filter the active view!
+            // Direct slug-based filtering from URL parameter (?artist=jair)
             if (targetArtistParam) {
-                const matchingArtistTrack = masterPlaylist.find(track => 
-                    track.artists && track.artists.name && track.artists.name.toLowerCase() === targetArtistParam.toLowerCase()
-                );
+                const cleanSlug = targetArtistParam.toLowerCase().trim();
                 
-                if (matchingArtistTrack && matchingArtistTrack.artists) {
-                    const artistId = matchingArtistTrack.artists.id;
-                    const tabs = document.querySelectorAll('.cat-tab');
-                    let targetTab = null;
-                    tabs.forEach(tab => {
-                        if (tab.innerText.toLowerCase() === targetArtistParam.toLowerCase()) {
-                            targetTab = tab;
-                        }
-                    });
-                    
-                    filterCatalog('artist', artistId, targetTab);
+                const filteredTracks = masterPlaylist.filter(track => 
+                    track.artists && track.artists.slug && track.artists.slug.toLowerCase() === cleanSlug
+                );
+
+                if (filteredTracks.length > 0) {
+                    activePlaylist = filteredTracks;
                 }
             }
+
+            if (activePlaylist.length > 0) {
+                loadTrackData(0);
+            }
+            renderInlinePlaylist();
+        }
 
             if (activePlaylist.length > 0) {
                 loadTrackData(0);
@@ -551,7 +550,7 @@
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
-                .select('id, title, audio_file_path, artwork_url, collection_id, collection_sort_order, sort_order, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(id, name, aweber_tag)')
+                .select('id, title, audio_file_path, artwork_url, collection_id, collection_sort_order, sort_order, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(id, name, slug, aweber_tag)')
                 .order('sort_order', { ascending: true, nullsFirst: false });
 
             if (!error && data) {
