@@ -283,6 +283,7 @@
             border: 1px solid #2e2e2e;
             transition: background 0.2s, border-color 0.2s;
             text-align: left;
+            position: relative;
         }
         .playlist-item:hover { background: #2a2a2a; border-color: #555; }
         .playlist-item.active-track { background: #2a1f12; border-color: #ff8c00; }
@@ -310,6 +311,21 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        /* Contextual Active-Track Share Button */
+        .track-share-btn {
+            background-color: #ff8c00;
+            color: #000;
+            border: none;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .track-share-btn:hover { background-color: #e07b00; }
 
         /* Modal Drawer Styles */
         .modal-overlay {
@@ -441,14 +457,14 @@
             <div id="action-row" class="action-section">
                 <button id="become-fan-btn" class="main-sub-btn" onclick="revealSubscribeForm()">BECOME A FAN</button>
                 
-                <!-- Rotating SVG Stream Button -->
+                <!-- "STREAM NOW" + Rotating SVG Stream Button -->
                 <button id="dynamic-stream-btn" class="stream-trigger-btn hidden" onclick="openStreamModal()">
-                    <span id="stream-content-display" style="display: flex; align-items: center; gap: 6px;">STREAM</span>
+                    <span id="stream-content-display" style="display: flex; align-items: center; gap: 6px;">STREAM NOW</span>
                 </button>
 
-                <!-- Conditional Green Purchase Button -->
+                <!-- Conditional Green Purchase Button ("Buy: $price") -->
                 <button id="dynamic-buy-btn" class="buy-trigger-btn hidden" onclick="openStoreModal()">
-                    🛒 OWN IT
+                    <span style="color: #ffffff;">Buy:</span> <span id="buy-price-display"></span>
                 </button>
             </div>
             <div id="subscribe-form-box" class="sub-form hidden">
@@ -555,6 +571,7 @@
         // Capture URL query parameters right when the page loads
         const urlParams = new URLSearchParams(window.location.search);
         const targetArtistParam = urlParams.get('artist');
+        const targetTrackParam = urlParams.get('track');
 
         const audioElement = document.getElementById('audio-element');
         const playIcon = document.getElementById('play-icon');
@@ -580,6 +597,15 @@
                 }
             }
 
+            // If a specific track ID was shared in URL, splice it right to index 0!
+            if (targetTrackParam) {
+                const trackIndex = activePlaylist.findIndex(t => String(t.id) === String(targetTrackParam));
+                if (trackIndex !== -1) {
+                    const selectedTrack = activePlaylist.splice(trackIndex, 1)[0];
+                    activePlaylist.unshift(selectedTrack);
+                }
+            }
+
             if (activePlaylist.length > 0) {
                 loadTrackData(0);
             }
@@ -589,7 +615,7 @@
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
-                .select('id, title, audio_file_path, artwork_url, collection_id, collection_sort_order, sort_order, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, artists(id, name, slug, aweber_tag)')
+                .select('id, title, audio_file_path, artwork_url, collection_id, collection_sort_order, sort_order, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, price, artists(id, name, slug, aweber_tag)')
                 .order('sort_order', { ascending: true, nullsFirst: false });
 
             if (!error && data) {
@@ -772,6 +798,7 @@
             pauseIcon.classList.add('hidden');
 
             updateActiveTrackActions(track);
+            renderInlinePlaylist();
         }
 
         function playTrack(index) {
@@ -796,18 +823,19 @@
             renderInlinePlaylist();
         }
 
-        // Conditional Action Button Evaluator (Stream SVG Rotation & Green Purchase Button)
+        // Conditional Action Button Evaluator ("STREAM NOW" + Rotating SVG & "Buy: $price" Button)
         function updateActiveTrackActions(track) {
             const streamBtn = document.getElementById('dynamic-stream-btn');
             const streamContainer = document.getElementById('stream-content-display');
             const buyBtn = document.getElementById('dynamic-buy-btn');
+            const buyPriceDisplay = document.getElementById('buy-price-display');
 
             if (iconRotationInterval) {
                 clearInterval(iconRotationInterval);
                 iconRotationInterval = null;
             }
 
-            // 1. Evaluate Streaming Links & SVGs
+            // 1. Evaluate Streaming Links & SVGs (Starts with "STREAM NOW" slide)
             const availablePlatforms = [];
             if (track.apple_music_url && track.apple_music_url.trim() !== '') availablePlatforms.push({ name: 'Apple Music', svg: platformSvgs['Apple Music'] });
             if (track.spotify_url && track.spotify_url.trim() !== '') availablePlatforms.push({ name: 'Spotify', svg: platformSvgs['Spotify'] });
@@ -817,26 +845,33 @@
 
             if (availablePlatforms.length === 0) {
                 streamBtn.classList.add('hidden');
-            } else if (availablePlatforms.length === 1) {
-                streamBtn.classList.remove('hidden');
-                streamContainer.innerHTML = `${availablePlatforms[0].svg} <span>${availablePlatforms[0].name}</span>`;
             } else {
                 streamBtn.classList.remove('hidden');
-                let platformIndex = 0;
-                streamContainer.innerHTML = `${availablePlatforms[0].svg} <span>${availablePlatforms[0].name}</span>`;
                 
-                iconRotationInterval = setInterval(() => {
-                    platformIndex = (platformIndex + 1) % availablePlatforms.length;
-                    streamContainer.innerHTML = `${availablePlatforms[platformIndex].svg} <span>${availablePlatforms[platformIndex].name}</span>`;
-                }, 3000);
+                // Build slides: Slide 0 is always "STREAM NOW", followed by individual platforms
+                const slides = [{ type: 'cta', text: 'STREAM NOW' }];
+                availablePlatforms.forEach(p => slides.push({ type: 'platform', name: p.name, svg: p.svg }));
+
+                let slideIndex = 0;
+                streamContainer.innerHTML = `<span>STREAM NOW</span>`;
+                
+                if (slides.length > 1) {
+                    iconRotationInterval = setInterval(() => {
+                        slideIndex = (slideIndex + 1) % slides.length;
+                        const currentSlide = slides[slideIndex];
+                        if (currentSlide.type === 'cta') {
+                            streamContainer.innerHTML = `<span>STREAM NOW</span>`;
+                        } else {
+                            streamContainer.innerHTML = `${currentSlide.svg} <span>${currentSlide.name}</span>`;
+                        }
+                    }, 3000);
+                }
             }
 
-            // 2. Evaluate Green Purchase Button Visibility
-            const hasStoreLink = (track.store_single_url && track.store_single_url.trim() !== '') || 
-                                 (track.store_album_url && track.store_album_url.trim() !== '');
-            
-            if (hasStoreLink) {
+            // 2. Evaluate Green Purchase Button ("Buy: $price")
+            if (track.price !== null && track.price !== undefined && track.price !== '') {
                 buyBtn.classList.remove('hidden');
+                buyPriceDisplay.innerText = `$${Number(track.price).toFixed(2)}`;
             } else {
                 buyBtn.classList.add('hidden');
             }
@@ -1023,6 +1058,30 @@
             hideSubscribeForm();
         }
 
+        // Share Track Function (Generates deep-link with artist slug and track ID)
+        function shareTrack(event, trackId) {
+            event.stopPropagation(); // Prevent track from playing when clicking share
+            const track = activePlaylist.find(t => t.id === trackId);
+            if (!track) return;
+
+            const artistSlug = track.artists && track.artists.slug ? track.artists.slug : 'all';
+            const shareUrl = `${window.location.origin}${window.location.pathname}?artist=${artistSlug}&track=${track.id}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: `${track.title} - ${track.artists ? track.artists.name : '2G Music Market'}`,
+                    text: `Check out this track on 2G Music Market!`,
+                    url: shareUrl,
+                }).catch(err => console.log('Error sharing:', err));
+            } else {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('Share link copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy link: ', err);
+                });
+            }
+        }
+
         function renderInlinePlaylist() {
             const container = document.getElementById('inline-tracks-container');
             container.innerHTML = '';
@@ -1038,12 +1097,19 @@
                 item.className = `playlist-item ${isActive ? 'active-track' : ''}`;
                 item.onclick = () => playTrack(index);
 
+                // Inject the orange Share button EXCLUSIVELY on the currently active track
+                let shareButtonHtml = '';
+                if (isActive) {
+                    shareButtonHtml = `<button class="track-share-btn" onclick="shareTrack(event, '${track.id}')">Share</button>`;
+                }
+
                 item.innerHTML = `
                     <img src="${track.artwork_url || ''}" alt="Art">
                     <div class="playlist-item-info">
                         <div class="playlist-item-title">${track.title}</div>
                         <div class="playlist-item-artist">${track.artists ? track.artists.name : '2G Music Market'}</div>
                     </div>
+                    ${shareButtonHtml}
                 `;
                 container.appendChild(item);
             });
