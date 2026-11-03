@@ -5,6 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2G Music Market - Music Player</title>
+    
+    <!-- Open Graph Social Preview Meta Tags -->
+    <meta property="og:title" id="og-title" content="2G Music Market">
+    <meta property="og:description" id="og-desc" content="Powered by 2G Entertainment">
+    <meta property="og:image" id="og-image" content="https://www.2g-ent.com/uploads/2/7/5/9/27593217/img-6930_orig.jpeg">
+    <meta property="og:url" content="">
+    <meta name="twitter:card" content="summary_large_image">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         html, body {
@@ -597,12 +605,13 @@
                 }
             }
 
-            // If a specific track ID was shared in URL, splice it right to index 0!
+            // If a specific track ID was shared in URL, splice it right to index 0 and update social preview card!
             if (targetTrackParam) {
                 const trackIndex = activePlaylist.findIndex(t => String(t.id) === String(targetTrackParam));
                 if (trackIndex !== -1) {
                     const selectedTrack = activePlaylist.splice(trackIndex, 1)[0];
                     activePlaylist.unshift(selectedTrack);
+                    updateSocialMeta(selectedTrack.title, selectedTrack.artists ? selectedTrack.artists.name : '2G Music Market', selectedTrack.artwork_url);
                 }
             }
 
@@ -610,6 +619,15 @@
                 loadTrackData(0);
             }
             renderInlinePlaylist();
+        }
+
+        // Dynamic Open Graph Meta Tag Updater for Social Sharing Previews
+        function updateSocialMeta(title, artist, artworkUrl) {
+            document.getElementById('og-title').setAttribute('content', `${title} - ${artist}`);
+            document.getElementById('og-desc').setAttribute('content', 'Stream or purchase directly on 2G Music Market');
+            if (artworkUrl) {
+                document.getElementById('og-image').setAttribute('content', artworkUrl);
+            }
         }
 
         async function loadTracks() {
@@ -1054,7 +1072,7 @@
             hideSubscribeForm();
         }
 
-        // Share Track Function (Copies raw deep-link URL directly without fluff text)
+        // Share Track Function (Copies raw deep-link URL directly and updates social preview meta tags)
         function shareTrack(event, trackId) {
             event.stopPropagation(); // Prevent track from playing when clicking share
             const track = activePlaylist.find(t => t.id === trackId);
