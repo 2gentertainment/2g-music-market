@@ -507,6 +507,10 @@
         // Shuffle State Management
         let shufflePool = [];
 
+        // Capture URL query parameters right when the page loads
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetArtistParam = urlParams.get('artist');
+
         const audioElement = document.getElementById('audio-element');
         const playIcon = document.getElementById('play-icon');
         const pauseIcon = document.getElementById('pause-icon');
@@ -517,6 +521,27 @@
         async function initPlayer() {
             await Promise.all([loadTracks(), loadCollections()]);
             buildTabs();
+
+            // If an artist filter parameter was passed in the URL, auto-filter the active view!
+            if (targetArtistParam) {
+                const matchingArtistTrack = masterPlaylist.find(track => 
+                    track.artists && track.artists.name && track.artists.name.toLowerCase() === targetArtistParam.toLowerCase()
+                );
+                
+                if (matchingArtistTrack && matchingArtistTrack.artists) {
+                    const artistId = matchingArtistTrack.artists.id;
+                    const tabs = document.querySelectorAll('.cat-tab');
+                    let targetTab = null;
+                    tabs.forEach(tab => {
+                        if (tab.innerText.toLowerCase() === targetArtistParam.toLowerCase()) {
+                            targetTab = tab;
+                        }
+                    });
+                    
+                    filterCatalog('artist', artistId, targetTab);
+                }
+            }
+
             if (activePlaylist.length > 0) {
                 loadTrackData(0);
             }
@@ -778,7 +803,6 @@
                     shufflePool.push(i);
                 }
             }
-            // Fisher-Yates shuffle for true randomness
             for (let i = shufflePool.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [shufflePool[i], shufflePool[j]] = [shufflePool[j], shufflePool[i]];
@@ -836,7 +860,6 @@
             document.getElementById('action-row').classList.remove('hidden');
         }
 
-        // Revert form when clicking outside the subscribe container
         document.addEventListener('click', (e) => {
             const subscribeContainer = document.querySelector('.subscribe-container');
             const formBox = document.getElementById('subscribe-form-box');
@@ -859,7 +882,6 @@
             const currentTrack = activePlaylist[currentIndex];
             const rawTagString = currentTrack && currentTrack.artists ? currentTrack.artists.aweber_tag : '2g-general';
 
-            // Construct a native hidden form submission targeting a background iframe (seamless, no redirect)
             const form = document.createElement('form');
             form.action = 'https://www.aweber.com/scripts/addlead.pl';
             form.method = 'POST';
@@ -885,7 +907,6 @@
                 form.appendChild(input);
             }
 
-            // Split comma-separated tags, strictly trim whitespace, and append using AWeber's indexed tag format
             if (rawTagString) {
                 const tagsArray = rawTagString.split(',').map(t => t.trim()).filter(t => t.length > 0);
                 tagsArray.forEach((cleanTag, index) => {
