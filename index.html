@@ -457,7 +457,7 @@
             <div id="action-row" class="action-section">
                 <button id="become-fan-btn" class="main-sub-btn" onclick="revealSubscribeForm()">BECOME A FAN</button>
                 
-                <!-- "STREAM NOW" + Rotating SVG Stream Button -->
+                <!-- "STREAM NOW" + Clean Uncontained Rotating Stream Button -->
                 <button id="dynamic-stream-btn" class="stream-trigger-btn hidden" onclick="openStreamModal()">
                     <span id="stream-content-display" style="display: flex; align-items: center; gap: 6px;">STREAM NOW</span>
                 </button>
@@ -559,7 +559,7 @@
         let shufflePool = [];
         let iconRotationInterval = null;
 
-        // Clean vector SVG paths for streaming platforms
+        // Clean uncontained vector glyphs for streaming platforms (No circular masks)
         const platformSvgs = {
             'Apple Music': '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 16.558l-5.074-1.127V7.935c0-.987-.798-1.785-1.785-1.785H9.684V4.936h1.351c1.722 0 3.136 1.414 3.136 3.136v4.717l3.723.827v-2.903h1.351v5.855z"/></svg>',
             'Spotify': '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.72.48-1.08.24-2.999-1.8-6.779-2.22-11.219-1.2-.42.12-.84-.12-.96-.54-.12-.42.12-.84.54-.96 4.86-1.14 9.06-.66 12.48 1.56.36.24.48.72.24 1.08zm1.5-3.84c-.3.48-.92.6-1.4 3-3.6-2.16-9.12-2.76-13.38-1.5-.54.18-1.14-.12-1.32-.66-.18-.54.12-1.14.66-1.32 4.68-1.38 10.8-.72 15 1.62.48.3.66.96.36 1.44zm.12-4C15.24 7.26 8.88 7.02 5.16 8.16c-.66.18-1.38-.18-1.56-.84-.18-.66.18-1.38.84-1.56 4.32-1.32 11.4-1.02 15.96 1.68.6.36.78 1.14.42 1.74-.36.6-1.14.78-1.74.42z"/></svg>',
@@ -1058,7 +1058,7 @@
             hideSubscribeForm();
         }
 
-        // Share Track Function (Generates deep-link with artist slug and track ID)
+        // Share Track Function (Copies raw deep-link URL directly without fluff text)
         function shareTrack(event, trackId) {
             event.stopPropagation(); // Prevent track from playing when clicking share
             const track = activePlaylist.find(t => t.id === trackId);
@@ -1069,8 +1069,6 @@
 
             if (navigator.share) {
                 navigator.share({
-                    title: `${track.title} - ${track.artists ? track.artists.name : '2G Music Market'}`,
-                    text: `Check out this track on 2G Music Market!`,
                     url: shareUrl,
                 }).catch(err => console.log('Error sharing:', err));
             } else {
