@@ -457,9 +457,9 @@
             <div id="action-row" class="action-section">
                 <button id="become-fan-btn" class="main-sub-btn" onclick="revealSubscribeForm()">BECOME A FAN</button>
                 
-                <!-- "STREAM NOW" + Clean Uncontained Rotating Stream Button -->
+                <!-- "STREAM NOW" + Brand Color Rotating Stream Button -->
                 <button id="dynamic-stream-btn" class="stream-trigger-btn hidden" onclick="openStreamModal()">
-                    <span id="stream-content-display" style="display: flex; align-items: center; gap: 6px;">STREAM NOW</span>
+                    <span id="stream-content-display">STREAM NOW</span>
                 </button>
 
                 <!-- Conditional Green Purchase Button ("Buy: $price") -->
@@ -559,13 +559,13 @@
         let shufflePool = [];
         let iconRotationInterval = null;
 
-        // Clean, perfectly proportioned uncontained vector glyphs for streaming platforms
-        const platformSvgs = {
-            'Apple Music': '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 16.558l-5.074-1.127V7.935c0-.987-.798-1.785-1.785-1.785H9.684V4.936h1.351c1.722 0 3.136 1.414 3.136 3.136v4.717l3.723.827v-2.903h1.351v5.855z"/></svg>',
-            'Spotify': '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.72.48-1.08.24-2.999-1.8-6.779-2.22-11.219-1.2-.42.12-.84-.12-.96-.54-.12-.42.12-.84.54-.96 4.86-1.14 9.06-.66 12.48 1.56.36.24.48.72.24 1.08zm1.5-3.84c-.3.48-.92.6-1.4 3-3.6-2.16-9.12-2.76-13.38-1.5-.54.18-1.14-.12-1.32-.66-.18-.54.12-1.14.66-1.32 4.68-1.38 10.8-.72 15 1.62.48.3.66.96.36 1.44zm.12-4C15.24 7.26 8.88 7.02 5.16 8.16c-.66.18-1.38-.18-1.56-.84-.18-.66.18-1.38.84-1.56 4.32-1.32 11.4-1.02 15.96 1.68.6.36.78 1.14.42 1.74-.36.6-1.14.78-1.74.42z"/></svg>',
-            'Tidal': '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.042 0L6.021 6.021 12.042 12l6.021-5.979L12.042 0zM0 12.042l6.021 6.021L12.042 12 6.021 6.021 0 12.042zm12.042 0l6.021 6.021L24.084 12l-6.021-5.979-6.021 5.979zM6.021 18.063L12.042 24l6.021-5.937-6.021-5.979-6.021 5.979z"/></svg>',
-            'YouTube': '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
-            'Pandora': '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm3.5 17h-2.5V7h2.5v10z"/></svg>'
+        // Platform Signature Brand Colors for Rotating Text Display
+        const platformColors = {
+            'Apple Music': '#fa233b',
+            'Spotify': '#1db954',
+            'Tidal': '#00ffff',
+            'YouTube': '#ff0000',
+            'Pandora': '#0095ff'
         };
 
         // Capture URL query parameters right when the page loads
@@ -823,7 +823,7 @@
             renderInlinePlaylist();
         }
 
-        // Conditional Action Button Evaluator ("STREAM NOW" + Rotating SVG & "Buy: $price" Button)
+        // Conditional Action Button Evaluator ("STREAM NOW" + Brand Color Rotation & "Buy: $price" Button)
         function updateActiveTrackActions(track) {
             const streamBtn = document.getElementById('dynamic-stream-btn');
             const streamContainer = document.getElementById('stream-content-display');
@@ -835,35 +835,31 @@
                 iconRotationInterval = null;
             }
 
-            // 1. Evaluate Streaming Links & SVGs (Starts with "STREAM NOW" slide)
+            // 1. Evaluate Streaming Links & Brand Colors (Starts with "STREAM NOW")
             const availablePlatforms = [];
-            if (track.apple_music_url && track.apple_music_url.trim() !== '') availablePlatforms.push({ name: 'Apple Music', svg: platformSvgs['Apple Music'] });
-            if (track.spotify_url && track.spotify_url.trim() !== '') availablePlatforms.push({ name: 'Spotify', svg: platformSvgs['Spotify'] });
-            if (track.tidal_url && track.tidal_url.trim() !== '') availablePlatforms.push({ name: 'Tidal', svg: platformSvgs['Tidal'] });
-            if (track.youtube_url && track.youtube_url.trim() !== '') availablePlatforms.push({ name: 'YouTube', svg: platformSvgs['YouTube'] });
-            if (track.pandora_url && track.pandora_url.trim() !== '') availablePlatforms.push({ name: 'Pandora', svg: platformSvgs['Pandora'] });
+            if (track.apple_music_url && track.apple_music_url.trim() !== '') availablePlatforms.push('Apple Music');
+            if (track.spotify_url && track.spotify_url.trim() !== '') availablePlatforms.push('Spotify');
+            if (track.tidal_url && track.tidal_url.trim() !== '') availablePlatforms.push('Tidal');
+            if (track.youtube_url && track.youtube_url.trim() !== '') availablePlatforms.push('YouTube');
+            if (track.pandora_url && track.pandora_url.trim() !== '') availablePlatforms.push('Pandora');
 
             if (availablePlatforms.length === 0) {
                 streamBtn.classList.add('hidden');
             } else {
                 streamBtn.classList.remove('hidden');
                 
-                // Build slides: Slide 0 is always "STREAM NOW", followed by individual platforms
-                const slides = [{ type: 'cta', text: 'STREAM NOW' }];
-                availablePlatforms.forEach(p => slides.push({ type: 'platform', name: p.name, svg: p.svg }));
+                // Build slides: Slide 0 is "STREAM NOW" (default white), followed by platforms with their brand colors
+                const slides = [{ type: 'cta', text: 'STREAM NOW', color: '#ffffff' }];
+                availablePlatforms.forEach(p => slides.push({ type: 'platform', text: p, color: platformColors[p] || '#ffffff' }));
 
                 let slideIndex = 0;
-                streamContainer.innerHTML = `<span>STREAM NOW</span>`;
+                streamContainer.innerHTML = `<span style="color: #ffffff;">STREAM NOW</span>`;
                 
                 if (slides.length > 1) {
                     iconRotationInterval = setInterval(() => {
                         slideIndex = (slideIndex + 1) % slides.length;
                         const currentSlide = slides[slideIndex];
-                        if (currentSlide.type === 'cta') {
-                            streamContainer.innerHTML = `<span>STREAM NOW</span>`;
-                        } else {
-                            streamContainer.innerHTML = `${currentSlide.svg} <span>${currentSlide.name}</span>`;
-                        }
+                        streamContainer.innerHTML = `<span style="color: ${currentSlide.color};">${currentSlide.text}</span>`;
                     }, 3000);
                 }
             }
