@@ -541,12 +541,6 @@
             renderInlinePlaylist();
         }
 
-            if (activePlaylist.length > 0) {
-                loadTrackData(0);
-            }
-            renderInlinePlaylist();
-        }
-
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
@@ -1022,6 +1016,7 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
+            document.getElementById('store-modal').classList.add('hidden'); // Fixed typo from earlier close syntax
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
