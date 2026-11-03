@@ -51,55 +51,65 @@
             flex-shrink: 0;
         }
 
-        /* Collapsible Search Bar (Sits right where the original search bar was) */
+        /* Collapsible Search Bar Container (Sits in original row) */
         .search-wrapper {
             position: relative;
             width: 100%;
             margin: 6px 0;
             flex-shrink: 0;
+            height: 36px;
             z-index: 600;
         }
 
+        /* Collapsed State: Orange SVG Magnifying Glass in Top Left */
         .search-collapsed-btn {
-            width: 100%;
-            padding: 9px 14px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 36px;
+            height: 36px;
             background-color: #1a1a1a;
             border: 1px solid #333333;
             border-radius: 8px;
-            color: #777777;
-            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-sizing: border-box;
         }
 
         .search-collapsed-btn:hover {
             border-color: #ff8c00;
-            color: #ffffff;
             background-color: #222222;
         }
 
-        .search-input-container {
-            position: relative;
-            width: 100%;
-            display: none;
+        .search-wrapper.active .search-collapsed-btn {
+            opacity: 0;
+            pointer-events: none;
         }
 
-        .search-wrapper.active .search-collapsed-btn {
-            display: none;
+        /* Expanded State: Full Width Search Bar */
+        .search-input-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.98);
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
 
         .search-wrapper.active .search-input-container {
-            display: block;
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
         }
 
         #portalSearchInput {
             width: 100%;
-            padding: 10px 36px 10px 14px;
+            height: 36px;
+            padding: 0 36px 0 14px;
             background-color: #000000;
             border: 1px solid #ff8c00;
             border-radius: 8px;
@@ -110,14 +120,15 @@
             box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2);
         }
 
-        .search-icon {
+        .search-icon-inside {
             position: absolute;
             right: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: #ff8c00;
             pointer-events: none;
-            font-size: 12px;
+            display: flex;
+            align-items: center;
         }
 
         .search-results-dropdown {
@@ -587,10 +598,13 @@
     <div class="player-card">
         <div class="player-header">2G Music Market</div>
 
-        <!-- Collapsible Search Bar (Sits right where the original bar was) -->
+        <!-- Collapsible Search Bar (Collapses to Orange SVG Icon in Top Left) -->
         <div class="search-wrapper" id="searchWrapper">
-            <div class="search-collapsed-btn" onclick="openSearch(event)">
-                <span>🔍</span> Search tracks or artists...
+            <div class="search-collapsed-btn" onclick="openSearch(event)" title="Search">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
             </div>
             <div class="search-input-container">
                 <input 
@@ -600,7 +614,12 @@
                     autocomplete="off"
                     spellcheck="false"
                 >
-                <span class="search-icon">🔍</span>
+                <span class="search-icon-inside">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </span>
             </div>
             <div id="portalSearchResults" class="search-results-dropdown hidden"></div>
         </div>
@@ -726,7 +745,6 @@
         let currentFilterValue = null; 
         let currentPlayingTrackId = null;
 
-        // Shuffle State Management
         let shufflePool = [];
         let iconRotationInterval = null;
 
@@ -1336,7 +1354,7 @@
             }
         }
 
-        // Collapse search back to bar when clicking outside
+        // Collapse search back to icon when clicking outside
         document.addEventListener('click', (e) => {
             if (!searchWrapper.contains(e.target)) {
                 hideSearchResults();
@@ -1412,6 +1430,7 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
+            document.getElementById('store-modal').classList.add('hidden'); // Fixed store modal close toggle check
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
