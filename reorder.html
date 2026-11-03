@@ -253,7 +253,7 @@
             document.querySelectorAll('.track-card').forEach(c => c.classList.remove('drag-over'));
         }
 
-        function randomizeCatalog(showNotice = false) {
+               function randomizeCatalog(showNotice = false) {
             for (let i = localCatalog.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [localCatalog[i], localCatalog[j]] = [localCatalog[j], localCatalog[i]];
@@ -261,11 +261,13 @@
             renderTrackList();
             saveCatalogOrder(true);
             
-            // Update last rotation timestamp
-            localStorage.setItem('2g_last_rotation_time', Date.now());
+            // Update rotation timestamps & broadcast pulse trigger for AWeber
+            const now = Date.now();
+            localStorage.setItem('2g_last_rotation_time', now);
+            localStorage.setItem('2g_broadcast_pulse', now); // Triggers fresh feed alert for AWeber
 
             if (showNotice) {
-                document.getElementById('status-msg').innerText = 'Catalog randomized & saved!';
+                document.getElementById('status-msg').innerText = 'Catalog randomized, saved, & broadcast primed!';
                 setTimeout(() => { document.getElementById('status-msg').innerText = ''; }, 2500);
             }
         }
