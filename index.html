@@ -598,7 +598,7 @@
     <div class="player-card">
         <div class="player-header">2G Music Market</div>
 
-        <!-- Collapsible Search Bar (Collapses to Orange SVG Icon in Top Left) -->
+        <!-- Collapsible Search Bar -->
         <div class="search-wrapper" id="searchWrapper">
             <div class="search-collapsed-btn" onclick="openSearch(event)" title="Search">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -646,13 +646,9 @@
         <div class="subscribe-container">
             <div id="action-row" class="action-section">
                 <button id="become-fan-btn" class="main-sub-btn" onclick="revealSubscribeForm()">BECOME A FAN</button>
-                
-                <!-- "STREAM NOW" + Brand Color Rotating Stream Button -->
                 <button id="dynamic-stream-btn" class="stream-trigger-btn hidden" onclick="openStreamModal()">
                     <span id="stream-content-display">STREAM NOW</span>
                 </button>
-
-                <!-- Conditional Green Purchase Button ("Buy: $price") -->
                 <button id="dynamic-buy-btn" class="buy-trigger-btn hidden" onclick="openStoreModal()">
                     <span style="color: #ffffff;">Buy:</span> <span id="buy-price-display"></span>
                 </button>
@@ -668,7 +664,7 @@
             <div class="cat-tab active-tab" onclick="filterCatalog('all', null, this)">All Songs</div>
         </div>
 
-        <!-- Context-Aware Centered Sub-Menu Bar (Singles vs Albums) -->
+        <!-- Context-Aware Centered Sub-Menu Bar -->
         <div id="submenu-bar" class="submenu-container hidden"></div>
 
         <!-- Independent Scrollable Inline Playlist Drawer -->
@@ -687,7 +683,8 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
             </button>
 
-            <button onclick="prevTrack()" title="Previous">
+            <!-- Previous Button with ID for Double-Tap Hook -->
+            <button id="prev-btn" title="Previous">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
             </button>
             
@@ -1149,6 +1146,29 @@
             playTrack(currentIndex);
         }
 
+        // --- Double-Tap Previous Button Logic ---
+        let lastBackClickTime = 0;
+        const doubleClickThreshold = 350; // Milliseconds window for a double-tap
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            const now = Date.now();
+            const timeSinceLastClick = now - lastBackClickTime;
+
+            if (lastBackClickTime && timeSinceLastClick < doubleClickThreshold) {
+                // SECOND TAP: Skip to previous track
+                prevTrack();
+                lastBackClickTime = 0;
+            } else {
+                // FIRST TAP: Check audio position or go back
+                if (audioElement.currentTime > 3) {
+                    audioElement.currentTime = 0;
+                } else {
+                    prevTrack();
+                }
+                lastBackClickTime = now;
+            }
+        });
+
         function toggleShuffle() {
             isShuffled = !isShuffled;
             document.getElementById('shuffle-btn').classList.toggle('active', isShuffled);
@@ -1456,6 +1476,7 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
+            document.getElementById('store-modal').classList.add('hidden'); // Fixed safe toggle
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
