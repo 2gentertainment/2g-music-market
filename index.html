@@ -1146,7 +1146,7 @@
             playTrack(currentIndex);
         }
 
-        // --- Double-Tap Previous Button Logic ---
+        // --- Updated Double-Tap Previous Button Logic ---
         let lastBackClickTime = 0;
         const doubleClickThreshold = 350; // Milliseconds window for a double-tap
 
@@ -1154,14 +1154,17 @@
             const now = Date.now();
             const timeSinceLastClick = now - lastBackClickTime;
 
+            // 1. Check for Double-Tap (Rapid successive clicks -> Skip track)
             if (lastBackClickTime && timeSinceLastClick < doubleClickThreshold) {
-                // SECOND TAP: Skip to previous track
                 prevTrack();
                 lastBackClickTime = 0;
-            } else {
-                // FIRST TAP: Check audio position or go back
+            } 
+            // 2. Single Tap Logic
+            else {
+                // If more than 3 seconds in, force restart the current audio track
                 if (audioElement.currentTime > 3) {
                     audioElement.currentTime = 0;
+                    audioElement.play(); // Explicitly keep it playing after resetting
                 } else {
                     prevTrack();
                 }
