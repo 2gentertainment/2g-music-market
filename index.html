@@ -765,6 +765,7 @@
         const totalDurationEl = document.getElementById('total-duration');
 
         async function initPlayer() {
+            checkDailyAnalyticsSync(); // Check and sync analytics queue once a day on startup
             await Promise.all([loadTracks(), loadCollections()]);
             buildTabs();
 
@@ -792,6 +793,50 @@
             }
             renderInlinePlaylist();
             setupMediaSession();
+        }
+
+        // --- Once-a-Day Batched Analytics Engine ---
+        function queueAnalyticsEvent(eventType, trackId, artistId = null) {
+            try {
+                const queue = JSON.parse(localStorage.getItem('analytics_queue') || '[]');
+                queue.push({
+                    event_type: eventType,
+                    track_id: trackId || null,
+                    artist_id: artistId || null,
+                    created_at: new Date().toISOString()
+                });
+                localStorage.setItem('analytics_queue', JSON.stringify(queue));
+            } catch (err) {
+                console.error("Error queueing analytics event:", err);
+            }
+        }
+
+        async function syncAnalyticsQueue() {
+            try {
+                const queue = JSON.parse(localStorage.getItem('analytics_queue') || '[]');
+                if (queue.length === 0) return;
+
+                const { error } = await _supabase.from('analytics_events').insert(queue);
+                if (!error) {
+                    localStorage.removeItem('analytics_queue');
+                    console.log(`Successfully synced ${queue.length} batched analytics events.`);
+                } else {
+                    console.error("Analytics sync error:", error);
+                }
+            } catch (err) {
+                console.error("Network error during analytics sync:", err);
+            }
+        }
+
+        function checkDailyAnalyticsSync() {
+            const lastSyncDate = localStorage.getItem('last_analytics_sync');
+            const today = new Date().toDateString();
+
+            if (lastSyncDate !== today) {
+                syncAnalyticsQueue().then(() => {
+                    localStorage.setItem('last_analytics_sync', today);
+                });
+            }
         }
 
         function updateSocialMeta(title, artist, artworkUrl) {
@@ -995,9 +1040,12 @@
             audioElement.src = track.audio_file_path;
             audioElement.play().then(() => {
                 updatePlayButton();
+                // Queue Play Analytics Event locally
+                queueAnalyticsEvent('play', track.id, track.artists ? track.artists.id : null);
             }).catch(err => {
                 console.log("Autoplay waiting for user interaction");
                 updatePlayButton();
+                queueAnalyticsEvent('play', track.id, track.artists ? track.artists.id : null);
             });
 
             updateActiveTrackActions(track);
@@ -1146,7 +1194,7 @@
             playTrack(currentIndex);
         }
 
-        // --- Updated Double-Tap Previous Button Logic ---
+        // --- Double-Tap Previous Button Logic ---
         let lastBackClickTime = 0;
         const doubleClickThreshold = 350; // Milliseconds window for a double-tap
 
@@ -1422,6 +1470,10 @@
         function openStreamModal() {
             const track = activePlaylist[currentIndex] || masterPlaylist.find(t => t.id === currentPlayingTrackId);
             if (!track) return;
+            
+            // Queue Stream Click Analytics Event
+            queueAnalyticsEvent('stream_click', track.id, track.artists ? track.artists.id : null);
+
             const container = document.getElementById('stream-links-container');
             container.innerHTML = '';
             const platforms = [
@@ -1450,6 +1502,10 @@
         function openStoreModal() {
             const track = activePlaylist[currentIndex] || masterPlaylist.find(t => t.id === currentPlayingTrackId);
             if (!track) return;
+
+            // Queue Store Click Analytics Event
+            queueAnalyticsEvent('store_click', track.id, track.artists ? track.artists.id : null);
+
             const container = document.getElementById('store-links-container');
             container.innerHTML = '';
 
@@ -1479,7 +1535,7 @@
                 container.innerHTML = '<p style="color: #888; font-size: 14px; margin: 10px 0;">No store links available for this track yet.</p>';
             }
 
-            document.getElementById('store-modal').classList.add('hidden'); // Fixed safe toggle
+            document.getElementById('store-modal').classList.add('hidden');
             document.getElementById('store-modal').classList.remove('hidden');
         }
         function closeStoreModal() { document.getElementById('store-modal').classList.add('hidden'); }
