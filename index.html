@@ -765,7 +765,8 @@
         const totalDurationEl = document.getElementById('total-duration');
 
         async function initPlayer() {
-            checkDailyAnalyticsSync(); // Check and sync analytics queue once a day on startup
+            getVisitorId(); // Initialize anonymous visitor ID for unique visitor tracking
+            checkDailyAnalyticsSync(); 
             await Promise.all([loadTracks(), loadCollections()]);
             buildTabs();
 
@@ -795,7 +796,16 @@
             setupMediaSession();
         }
 
-        // --- Once-a-Day Batched Analytics Engine ---
+        // --- Visitor ID & Batched Analytics Engine ---
+        function getVisitorId() {
+            let visitorId = localStorage.getItem('2g_visitor_id');
+            if (!visitorId) {
+                visitorId = 'v_' + Math.random().toString(36).substring(2) + Date.now();
+                localStorage.setItem('2g_visitor_id', visitorId);
+            }
+            return visitorId;
+        }
+
         function queueAnalyticsEvent(eventType, trackId, artistId = null) {
             try {
                 const queue = JSON.parse(localStorage.getItem('analytics_queue') || '[]');
@@ -803,6 +813,7 @@
                     event_type: eventType,
                     track_id: trackId || null,
                     artist_id: artistId || null,
+                    visitor_id: getVisitorId(),
                     created_at: new Date().toISOString()
                 });
                 localStorage.setItem('analytics_queue', JSON.stringify(queue));
@@ -1040,7 +1051,6 @@
             audioElement.src = track.audio_file_path;
             audioElement.play().then(() => {
                 updatePlayButton();
-                // Queue Play Analytics Event locally
                 queueAnalyticsEvent('play', track.id, track.artists ? track.artists.id : null);
             }).catch(err => {
                 console.log("Autoplay waiting for user interaction");
@@ -1196,23 +1206,19 @@
 
         // --- Double-Tap Previous Button Logic ---
         let lastBackClickTime = 0;
-        const doubleClickThreshold = 350; // Milliseconds window for a double-tap
+        const doubleClickThreshold = 350; 
 
         document.getElementById('prev-btn').addEventListener('click', () => {
             const now = Date.now();
             const timeSinceLastClick = now - lastBackClickTime;
 
-            // 1. Check for Double-Tap (Rapid successive clicks -> Skip track)
             if (lastBackClickTime && timeSinceLastClick < doubleClickThreshold) {
                 prevTrack();
                 lastBackClickTime = 0;
-            } 
-            // 2. Single Tap Logic
-            else {
-                // If more than 3 seconds in, force restart the current audio track
+            } else {
                 if (audioElement.currentTime > 3) {
                     audioElement.currentTime = 0;
-                    audioElement.play(); // Explicitly keep it playing after resetting
+                    audioElement.play(); 
                 } else {
                     prevTrack();
                 }
@@ -1471,7 +1477,6 @@
             const track = activePlaylist[currentIndex] || masterPlaylist.find(t => t.id === currentPlayingTrackId);
             if (!track) return;
             
-            // Queue Stream Click Analytics Event
             queueAnalyticsEvent('stream_click', track.id, track.artists ? track.artists.id : null);
 
             const container = document.getElementById('stream-links-container');
@@ -1503,7 +1508,6 @@
             const track = activePlaylist[currentIndex] || masterPlaylist.find(t => t.id === currentPlayingTrackId);
             if (!track) return;
 
-            // Queue Store Click Analytics Event
             queueAnalyticsEvent('store_click', track.id, track.artists ? track.artists.id : null);
 
             const container = document.getElementById('store-links-container');
