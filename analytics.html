@@ -18,7 +18,7 @@
         }
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
         }
         .header-bar {
             display: flex;
@@ -30,6 +30,23 @@
         }
         h2 { color: #ff8c00; margin: 0; font-size: 20px; }
         
+        /* Summary Cards Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .metric-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .metric-card h4 { margin: 0 0 5px 0; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .metric-card .stat-val { font-size: 22px; font-weight: bold; color: #ff8c00; margin: 0; }
+
         .btn {
             background-color: #ff8c00;
             color: #000;
@@ -69,18 +86,9 @@
             color: #ff8c00;
             font-weight: 600;
         }
-        .analytics-table tr:last-child td {
-            border-bottom: none;
-        }
-        .analytics-table tr:hover {
-            background-color: #222;
-        }
-        .loading, .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #888;
-            font-size: 14px;
-        }
+        .analytics-table tr:last-child td { border-bottom: none; }
+        .analytics-table tr:hover { background-color: #222; }
+        .loading, .no-data { text-align: center; padding: 40px; color: #888; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -94,6 +102,26 @@
             </div>
         </div>
 
+        <!-- Global Summary Cards -->
+        <div id="metrics-summary" class="metrics-grid">
+            <div class="metric-card">
+                <h4>Unique Visitors</h4>
+                <p class="stat-val" id="stat-unique-visitors">-</p>
+            </div>
+            <div class="metric-card">
+                <h4>Total Plays</h4>
+                <p class="stat-val" id="stat-total-plays">-</p>
+            </div>
+            <div class="metric-card">
+                <h4>Store Clicks</h4>
+                <p class="stat-val" id="stat-store-clicks">-</p>
+            </div>
+            <div class="metric-card">
+                <h4>Stream Clicks</h4>
+                <p class="stat-val" id="stat-stream-clicks">-</p>
+            </div>
+        </div>
+
         <div id="analytics-content">
             <div class="loading">Loading performance metrics...</div>
         </div>
@@ -104,7 +132,6 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_bHflg5jJHZfPzoOdsC5f_Q_H3YO4v3c';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Security check: ensure admin is authenticated via session storage
         window.onload = function() {
             if (sessionStorage.getItem('2g_admin_auth') !== 'true') {
                 alert('Unauthorized access. Please log in via the Master Admin Hub.');
@@ -118,24 +145,27 @@
             const contentContainer = document.getElementById('analytics-content');
 
             try {
-                // Fetch tracks and join with analytics_events
                 const { data, error } = await _supabase
                     .from('tracks')
                     .select(`
                         id,
                         title,
                         artists ( name ),
-                        analytics_events ( event_type )
+                        analytics_events ( event_type, visitor_id )
                     `);
 
-                if (error) {
-                    throw error;
-                }
+                if (error) throw error;
 
                 if (!data || data.length === 0) {
                     contentContainer.innerHTML = `<div class="no-data">No tracks found in database.</div>`;
                     return;
                 }
+
+                // Global totals calculation
+                let globalPlays = 0;
+                let globalStoreClicks = 0;
+                let globalStreamClicks = 0;
+                const uniqueVisitorsSet = new Set();
 
                 // Process counts per track
                 const report = data.map(track => {
@@ -143,6 +173,14 @@
                     const plays = events.filter(e => e.event_type === 'play').length;
                     const storeClicks = events.filter(e => e.event_type === 'store_click').length;
                     const streamClicks = events.filter(e => e.event_type === 'stream_click').length;
+
+                    globalPlays += plays;
+                    globalStoreClicks += storeClicks;
+                    globalStreamClicks += streamClicks;
+
+                    events.forEach(e => {
+                        if (e.visitor_id) uniqueVisitorsSet.add(e.visitor_id);
+                    });
 
                     return {
                         title: track.title,
@@ -153,17 +191,22 @@
                     };
                 });
 
-                // Sort by total plays descending
+                // Update Top Summary Cards
+                document.getElementById('stat-unique-visitors').innerText = uniqueVisitorsSet.size;
+                document.getElementById('stat-total-plays').innerText = globalPlays;
+                document.getElementById('stat-store-clicks').innerText = globalStoreClicks;
+                document.getElementById('stat-stream-clicks').innerText = globalStreamClicks;
+
+                // Sort table rows by total plays descending
                 report.sort((a, b) => b.plays - a.plays);
 
-                // Build HTML Table
                 let html = `
                     <table class="analytics-table">
                         <thead>
                             <tr>
                                 <th>Track Title</th>
                                 <th>Artist</th>
-                                <th>Total Plays</th>
+                                <th>Plays</th>
                                 <th>Store Clicks</th>
                                 <th>Stream Clicks</th>
                             </tr>
@@ -204,7 +247,7 @@
                 if (!error) {
                     localStorage.removeItem('analytics_queue');
                     alert(`Successfully synced ${queue.length} batched events to Supabase!`);
-                    fetchAnalytics(); // Refresh the table view
+                    fetchAnalytics();
                 } else {
                     alert('Error syncing queue. Check console.');
                     console.error(error);
