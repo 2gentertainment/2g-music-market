@@ -849,13 +849,17 @@
             }
         }
 
-        function updateSocialMeta(title, artist, artworkUrl) {
-            document.getElementById('og-title').setAttribute('content', `${title} - ${artist}`);
-            document.getElementById('og-desc').setAttribute('content', 'Stream or purchase directly on 2G Music Market');
-            if (artworkUrl) {
-                document.getElementById('og-image').setAttribute('content', artworkUrl);
-            }
-        }
+function updateSocialMeta(title, artist, artworkUrl) {
+    let titleMeta = document.querySelector('meta[property="og:title"]');
+    let descMeta = document.querySelector('meta[property="og:description"]');
+    let imageMeta = document.querySelector('meta[property="og:image"]');
+
+    if (titleMeta) titleMeta.setAttribute('content', `${title} - ${artist}`);
+    if (descMeta) descMeta.setAttribute('content', 'Stream or purchase directly on 2G Music Market');
+    if (artworkUrl && imageMeta) {
+        imageMeta.setAttribute('content', artworkUrl);
+    }
+}
 
         async function loadTracks() {
             const { data, error } = await _supabase
