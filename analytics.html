@@ -141,99 +141,111 @@
             fetchAnalytics();
         };
 
-        async function fetchAnalytics() {
-            const contentContainer = document.getElementById('analytics-content');
+async function fetchAnalytics() {
+    const contentContainer = document.getElementById('analytics-content');
 
-            try {
-                const { data, error } = await _supabase
-                    .from('tracks')
-                    .select(`
-                        id,
-                        title,
-                        artists ( name ),
-                        analytics_events ( event_type, visitor_id )
-                    `);
+    try {
+        // 1. Fetch tracks and artists
+        const { data: tracksData, error: tracksError } = await _supabase
+            .from('tracks')
+            .select(`
+                id,
+                title,
+                artists ( name )
+            `);
 
-                if (error) throw error;
+        if (tracksError) throw tracksError;
 
-                if (!data || data.length === 0) {
-                    contentContainer.innerHTML = `<div class="no-data">No tracks found in database.</div>`;
-                    return;
-                }
-
-                // Global totals calculation
-                let globalPlays = 0;
-                let globalStoreClicks = 0;
-                let globalStreamClicks = 0;
-                const uniqueVisitorsSet = new Set();
-
-                // Process counts per track
-                const report = data.map(track => {
-                    const events = track.analytics_events || [];
-                    const plays = events.filter(e => e.event_type === 'play').length;
-                    const storeClicks = events.filter(e => e.event_type === 'store_click').length;
-                    const streamClicks = events.filter(e => e.event_type === 'stream_click').length;
-
-                    globalPlays += plays;
-                    globalStoreClicks += storeClicks;
-                    globalStreamClicks += streamClicks;
-
-                    events.forEach(e => {
-                        if (e.visitor_id) uniqueVisitorsSet.add(e.visitor_id);
-                    });
-
-                    return {
-                        title: track.title,
-                        artist: track.artists ? track.artists.name : '2G Music Market',
-                        plays,
-                        storeClicks,
-                        streamClicks
-                    };
-                });
-
-                // Update Top Summary Cards
-                document.getElementById('stat-unique-visitors').innerText = uniqueVisitorsSet.size;
-                document.getElementById('stat-total-plays').innerText = globalPlays;
-                document.getElementById('stat-store-clicks').innerText = globalStoreClicks;
-                document.getElementById('stat-stream-clicks').innerText = globalStreamClicks;
-
-                // Sort table rows by total plays descending
-                report.sort((a, b) => b.plays - a.plays);
-
-                let html = `
-                    <table class="analytics-table">
-                        <thead>
-                            <tr>
-                                <th>Track Title</th>
-                                <th>Artist</th>
-                                <th>Plays</th>
-                                <th>Store Clicks</th>
-                                <th>Stream Clicks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                report.forEach(row => {
-                    html += `
-                        <tr>
-                            <td><strong>${escapeHtml(row.title)}</strong></td>
-                            <td style="color: #ff8c00;">${escapeHtml(row.artist)}</td>
-                            <td>${row.plays}</td>
-                            <td>${row.storeClicks}</td>
-                            <td>${row.streamClicks}</td>
-                        </tr>
-                    `;
-                });
-
-                html += `</tbody></table>`;
-                contentContainer.innerHTML = html;
-
-            } catch (err) {
-                console.error("Error fetching analytics:", err);
-                contentContainer.innerHTML = `<div class="no-data" style="color: #ff4d4d;">Failed to load analytics data. Check console for details.</div>`;
-            }
+        if (!tracksData || tracksData.length === 0) {
+            contentContainer.innerHTML = `<div class="no-data">No tracks found in database.</div>`;
+            return;
         }
+
+        // 2. Fetch all analytics events separately
+        const { data: eventsData, error: eventsError } = await _supabase
+            .from('analytics_events')
+            .select('event_type, visitor_id, track_id');
+
+        if (eventsError) throw eventsError;
+
+        const events = eventsData || [];
+
+        // Global totals calculation
+        let globalPlays = 0;
+        let globalStoreClicks = 0;
+        let globalStreamClicks = 0;
+        const uniqueVisitorsSet = new Set();
+
+        events.forEach(e => {
+            if (e.visitor_id) uniqueVisitorsSet.add(e.visitor_id);
+        });
+
+        // Map events to their respective tracks
+        const report = tracksData.map(track => {
+            // Match events using track_id == track.id
+            const trackEvents = events.filter(e => e.track_id === track.id);
+            
+            const plays = trackEvents.filter(e => e.event_type === 'play').length;
+            const storeClicks = trackEvents.filter(e => e.event_type === 'store_click').length;
+            const streamClicks = trackEvents.filter(e => e.event_type === 'stream_click').length;
+
+            globalPlays += plays;
+            globalStoreClicks += storeClicks;
+            globalStreamClicks += streamClicks;
+
+            return {
+                title: track.title,
+                artist: track.artists ? track.artists.name : '2G Music Market',
+                plays,
+                storeClicks,
+                streamClicks
+            };
+        });
+
+        // Update Top Summary Cards
+        document.getElementById('stat-unique-visitors').innerText = uniqueVisitorsSet.size;
+        document.getElementById('stat-total-plays').innerText = globalPlays;
+        document.getElementById('stat-store-clicks').innerText = globalStoreClicks;
+        document.getElementById('stat-stream-clicks').innerText = globalStreamClicks;
+
+        // Sort table rows by total plays descending
+        report.sort((a, b) => b.plays - a.plays);
+
+        let html = `
+            <table class="analytics-table">
+                <thead>
+                    <tr>
+                        <th>Track Title</th>
+                        <th>Artist</th>
+                        <th>Plays</th>
+                        <th>Store Clicks</th>
+                        <th>Stream Clicks</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        report.forEach(row => {
+            html += `
+                <tr>
+                    <td><strong>${escapeHtml(row.title)}</strong></td>
+                    <td style="color: #ff8c00;">${escapeHtml(row.artist)}</td>
+                    <td>${row.plays}</td>
+                    <td>${row.storeClicks}</td>
+                    <td>${row.streamClicks}</td>
+                </tr>
+            `;
+        });
+
+        html += `</tbody></table>`;
+        contentContainer.innerHTML = html;
+
+    } catch (err) {
+        console.error("Error fetching analytics:", err);
+        contentContainer.innerHTML = `<div class="no-data" style="color: #ff4d4d;">Failed to load analytics data. Check console for details.</div>`;
+    }
+}
+
 
         async function triggerManualSync() {
             try {
