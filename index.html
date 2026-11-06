@@ -4,13 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2G Music Market - Music Player</title>
     
-<!-- Open Graph Social Preview Meta Tags -->
-<meta property="og:title" content="2G Music Market">
-<meta property="og:description" content="Powered by 2G Entertainment">
-<meta property="og:image" content="https://www.2g-ent.com/uploads/2/7/5/9/27593217/img-6930_orig.jpeg">
-<meta property="og:url" content="https://2gentertainment.github.io/2g-music-market/index.html">
+    <!-- Open Graph Social Preview Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="2G Music Market">
+    <meta property="og:description" content="Powered by 2G Entertainment">
+    <meta property="og:image" content="https://www.2g-ent.com/uploads/2/7/5/9/27593217/img-6930_orig.jpeg">
+    <meta property="og:image:secure_url" content="https://www.2g-ent.com/uploads/2/7/5/9/27593217/img-6930_orig.jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://2gentertainment.github.io/2g-music-market/index.html">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <title>2G Music Market - Music Player</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -849,17 +855,17 @@
             }
         }
 
-function updateSocialMeta(title, artist, artworkUrl) {
-    let titleMeta = document.querySelector('meta[property="og:title"]');
-    let descMeta = document.querySelector('meta[property="og:description"]');
-    let imageMeta = document.querySelector('meta[property="og:image"]');
+        function updateSocialMeta(title, artist, artworkUrl) {
+            let titleMeta = document.querySelector('meta[property="og:title"]');
+            let descMeta = document.querySelector('meta[property="og:description"]');
+            let imageMeta = document.querySelector('meta[property="og:image"]');
 
-    if (titleMeta) titleMeta.setAttribute('content', `${title} - ${artist}`);
-    if (descMeta) descMeta.setAttribute('content', 'Stream or purchase directly on 2G Music Market');
-    if (artworkUrl && imageMeta) {
-        imageMeta.setAttribute('content', artworkUrl);
-    }
-}
+            if (titleMeta) titleMeta.setAttribute('content', `${title} - ${artist}`);
+            if (descMeta) descMeta.setAttribute('content', 'Stream or purchase directly on 2G Music Market');
+            if (artworkUrl && imageMeta) {
+                imageMeta.setAttribute('content', artworkUrl);
+            }
+        }
 
         async function loadTracks() {
             const { data, error } = await _supabase
@@ -1551,20 +1557,17 @@ function updateSocialMeta(title, artist, artworkUrl) {
         initPlayer();
     </script>
 
-
-<script src="//code.tidio.co/eociixek6ty4gkxgazvgsz9kaiidyyxw.js" async></script>
-<style>
-    /* Completely hide all Tidio chat frames, buttons, and launcher bubbles */
-    #tidio-chat-iframe, 
-    #tidio-chat, 
-    iframe[id^="tidio-chat"] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-    }
-</style>    
-    
-    
+    <!-- Tidio Script & Comprehensive Hidden Override -->
+    <script src="//code.tidio.co/eociixek6ty4gkxgazvgsz9kaiidyyxw.js" async></script>
+    <style>
+        #tidio-chat-iframe, 
+        #tidio-chat, 
+        iframe[id^="tidio-chat"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+    </style>
 </body>
 </html>
