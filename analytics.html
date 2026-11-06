@@ -185,9 +185,20 @@ async function fetchAnalytics() {
             // Match events using track_id == track.id
             const trackEvents = events.filter(e => e.track_id === track.id);
             
-            const plays = trackEvents.filter(e => e.event_type === 'play').length;
-            const storeClicks = trackEvents.filter(e => e.event_type === 'store_click').length;
-            const streamClicks = trackEvents.filter(e => e.event_type === 'stream_click').length;
+            const plays = trackEvents.filter(e => {
+                const type = (e.event_type || '').toLowerCase();
+                return type === 'play' || type.includes('play');
+            }).length;
+
+            const storeClicks = trackEvents.filter(e => {
+                const type = (e.event_type || '').toLowerCase();
+                return type === 'store_click' || type.includes('store');
+            }).length;
+
+            const streamClicks = trackEvents.filter(e => {
+                const type = (e.event_type || '').toLowerCase();
+                return type === 'stream_click' || type.includes('stream');
+            }).length;
 
             globalPlays += plays;
             globalStoreClicks += storeClicks;
@@ -201,6 +212,7 @@ async function fetchAnalytics() {
                 streamClicks
             };
         });
+
 
         // Update Top Summary Cards
         document.getElementById('stat-unique-visitors').innerText = uniqueVisitorsSet.size;
