@@ -1548,13 +1548,19 @@
         initPlayer();
     </script>
 
+
 <script src="//code.tidio.co/eociixek6ty4gkxgazvgsz9kaiidyyxw.js" async></script>
 <style>
-    /* Hide the Tidio chat widget completely from view */
-    #tidio-chat-iframe {
+    /* Completely hide all Tidio chat frames, buttons, and launcher bubbles */
+    #tidio-chat-iframe, 
+    #tidio-chat, 
+    iframe[id^="tidio-chat"] {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
-</style>
+</style>    
     
     
 </body>
