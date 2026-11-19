@@ -747,9 +747,12 @@
         let currentFilterValue = null; 
         let currentPlayingTrackId = null;
 
-        let shufflePool = [];
+                let shufflePool = [];
         let iconRotationInterval = null;
         let intendedPlaying = false;
+        let catalogLoadedSuccessfully = false;
+        let isLoadingCatalog = false;
+
 
 
         const platformColors = {
@@ -771,11 +774,16 @@
         const currentTimeEl = document.getElementById('current-time');
         const totalDurationEl = document.getElementById('total-duration');
 
-        async function initPlayer() {
+                async function initPlayer() {
+            if (isLoadingCatalog) return;
+            isLoadingCatalog = true;
+
             getVisitorId(); // Initialize anonymous visitor ID for unique visitor tracking
-            checkDailyAnalyticsSync(); 
-            await Promise.all([loadTracks(), loadCollections()]);
-            buildTabs();
+            checkDailyAnalyticsSync();
+            try {
+                await Promise.all([loadTracks(), loadCollections()]);
+                buildTabs();
+
 
             if (targetArtistParam) {
                 const cleanSlug = targetArtistParam.toLowerCase().trim();
@@ -796,12 +804,18 @@
                 }
             }
 
-            if (activePlaylist.length > 0) {
+                        if (activePlaylist.length > 0) {
                 loadTrackData(0);
             }
             renderInlinePlaylist();
             setupMediaSession();
+            } catch (err) {
+                console.error('Error initializing player:', err);
+            } finally {
+                isLoadingCatalog = false;
+            }
         }
+
 
         // --- Visitor ID & Batched Analytics Engine ---
         function getVisitorId() {
@@ -869,18 +883,25 @@
             }
         }
 
-        async function loadTracks() {
+                async function loadTracks() {
             const { data, error } = await _supabase
                 .from('tracks')
                 .select('id, title, audio_file_path, artwork_url, collection_id, collection_sort_order, sort_order, apple_music_url, spotify_url, tidal_url, youtube_url, pandora_url, store_single_url, store_album_url, price, artists(id, name, slug, aweber_tag)')
                 .order('sort_order', { ascending: true, nullsFirst: false });
 
-            if (!error && data) {
+            if (!error && Array.isArray(data) && data.length > 0) {
                 masterPlaylist = data;
                 activePlaylist = [...masterPlaylist];
+                catalogLoadedSuccessfully = true;
                 resetShufflePool();
+            } else if (!error && Array.isArray(data) && data.length === 0) {
+                masterPlaylist = [];
+                activePlaylist = [];
+                catalogLoadedSuccessfully = true;
+                document.getElementById('track-title').innerText = 'No tracks found';
             }
         }
+
 
         async function loadCollections() {
             const { data, error } = await _supabase
@@ -1327,7 +1348,15 @@
             document.getElementById('repeat-btn').classList.toggle('active', isRepeated);
         }
 
-                function recoverPlaybackIfNeeded() {
+                        async function recoverPlaybackIfNeeded() {
+            if (!catalogLoadedSuccessfully || masterPlaylist.length === 0) {
+                await initPlayer();
+                if (activePlaylist.length > 0 && intendedPlaying) {
+                    playTrack(currentIndex < activePlaylist.length ? currentIndex : 0);
+                    return;
+                }
+            }
+
             const activeTrack = activePlaylist[currentIndex] || masterPlaylist.find(t => t.id === currentPlayingTrackId);
             if (!activeTrack || !activeTrack.audio_file_path) return;
 
@@ -1338,6 +1367,11 @@
                 updatePlayButton();
             }
         }
+
+        window.addEventListener('online', () => {
+            recoverPlaybackIfNeeded();
+        });
+
 
         audioElement.addEventListener('play', () => {
             intendedPlaying = true;
