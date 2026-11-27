@@ -596,24 +596,36 @@
         .controls button#play-pause-btn:hover { background: #e07b00; color: #000; }
 
         .promo-banner {
-            text-align: center;
-            padding-top: 6px;
-            padding-bottom: 2px;
+            height: 24px;
+            padding-top: 4px;
+            overflow: hidden;
+            position: relative;
             flex-shrink: 0;
         }
         .promo-banner-link {
-            display: inline-flex;
+            display: block;
+            width: 100%;
+            height: 100%;
+            text-decoration: none;
+        }
+        .promo-slide-track {
+            display: flex;
+            flex-direction: column;
+            animation: promoVerticalCycle 15s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+        }
+        .promo-banner:hover .promo-slide-track {
+            animation-play-state: paused;
+        }
+        .promo-slide {
+            height: 20px;
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             font-size: 10px;
-            color: #777;
-            text-decoration: none;
+            color: #888;
             letter-spacing: 0.3px;
-            transition: color 0.2s ease;
-        }
-        .promo-banner-link:hover {
-            color: #ff8c00;
+            flex-shrink: 0;
         }
         .promo-eq-bars {
             display: inline-flex;
@@ -642,6 +654,42 @@
             color: #ff8c00;
             font-weight: 600;
         }
+        .promo-hype-text {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            color: #ff9d2e;
+            text-shadow:
+                0 0 8px rgba(255, 140, 0, 0.55),
+                0 0 16px rgba(46, 204, 113, 0.2);
+            animation: promoGlowPulse 2s ease-in-out infinite;
+        }
+
+        /* 0% - 66.6% (~10s): Main strip | Quick snap up | ~4.3s: Hype line | Quick snap back */
+        @keyframes promoVerticalCycle {
+            0%, 65% {
+                transform: translateY(0);
+            }
+            70%, 95% {
+                transform: translateY(-20px);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes promoGlowPulse {
+            0%, 100% {
+                text-shadow:
+                    0 0 7px rgba(255, 140, 0, 0.45),
+                    0 0 14px rgba(46, 204, 113, 0.15);
+            }
+            50% {
+                text-shadow:
+                    0 0 12px rgba(255, 140, 0, 0.8),
+                    0 0 22px rgba(46, 204, 113, 0.32);
+            }
+        }
         
         .hidden { display: none !important; }
     </style>
@@ -649,7 +697,7 @@
 <body>
 
     <div class="player-card">
-        <div class="player-header">2G Music Market</div>
+        <div class="player-header">2G Entertainment</div>
 
         <!-- Collapsible Search Bar -->
         <div class="search-wrapper" id="searchWrapper">
@@ -755,7 +803,7 @@
             </button>
         </div>
 
-        <!-- Artist Acquisition Promo Banner -->
+              <!-- Artist Acquisition Promo Banner -->
         <div class="promo-banner">
             <a
                 href="https://musicmarket.app/create"
@@ -763,21 +811,29 @@
                 rel="noopener noreferrer"
                 class="promo-banner-link"
             >
-                <span class="promo-eq-bars" aria-hidden="true">
-                    <span class="eq-b1"></span>
-                    <span class="eq-b2"></span>
-                    <span class="eq-b3"></span>
-                    <span class="eq-b4"></span>
-                    <span class="eq-b5"></span>
-                    <span class="eq-b6"></span>
-                    <span class="eq-b7"></span>
-                </span>
-                <span>Powered by</span>
-                <span class="promo-brand">Music Market</span>
-                <span>&middot;</span>
-                <span class="promo-cta">Create You Account Now</span>
+                <div class="promo-slide-track">
+                    <div class="promo-slide">
+                        <span class="promo-eq-bars" aria-hidden="true">
+                            <span class="eq-b1"></span>
+                            <span class="eq-b2"></span>
+                            <span class="eq-b3"></span>
+                            <span class="eq-b4"></span>
+                            <span class="eq-b5"></span>
+                            <span class="eq-b6"></span>
+                            <span class="eq-b7"></span>
+                        </span>
+                        <span>Powered by</span>
+                        <span class="promo-brand">Music Market</span>
+                        <span>&middot;</span>
+                        <span class="promo-cta">Create Your Account Now</span>
+                    </div>
+                    <div class="promo-slide">
+                        <span class="promo-hype-text">More Streams, More Sales, More Fans</span>
+                    </div>
+                </div>
             </a>
         </div>
+
     </div>
 
     <!-- Streaming Links Modal Drawer -->
