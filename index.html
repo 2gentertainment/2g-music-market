@@ -594,6 +594,54 @@
             height: 46px;
         }
         .controls button#play-pause-btn:hover { background: #e07b00; color: #000; }
+
+        .promo-banner {
+            text-align: center;
+            padding-top: 6px;
+            padding-bottom: 2px;
+            flex-shrink: 0;
+        }
+        .promo-banner-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 10px;
+            color: #777;
+            text-decoration: none;
+            letter-spacing: 0.3px;
+            transition: color 0.2s ease;
+        }
+        .promo-banner-link:hover {
+            color: #ff8c00;
+        }
+        .promo-eq-bars {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 11px;
+        }
+        .promo-eq-bars span {
+            width: 2px;
+            background-color: #ff8c00;
+            display: inline-block;
+        }
+        .promo-eq-bars .eq-b1 { height: 100%; }
+        .promo-eq-bars .eq-b2 { height: 7px; }
+        .promo-eq-bars .eq-b3 { height: 5px; }
+        .promo-eq-bars .eq-b4 { height: 4px; }
+        .promo-eq-bars .eq-b5 { height: 5px; }
+        .promo-eq-bars .eq-b6 { height: 9px; background-color: #2ecc71; }
+        .promo-eq-bars .eq-b7 { height: 100%; }
+        .promo-brand {
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .promo-cta {
+            text-decoration: underline;
+            color: #ff8c00;
+            font-weight: 600;
+        }
         
         .hidden { display: none !important; }
     </style>
@@ -705,6 +753,30 @@
             <button id="repeat-btn" onclick="toggleRepeat()" title="Repeat">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
             </button>
+        </div>
+
+        <!-- Artist Acquisition Promo Banner -->
+        <div class="promo-banner">
+            <a
+                href="https://musicmarket.app/create"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="promo-banner-link"
+            >
+                <span class="promo-eq-bars" aria-hidden="true">
+                    <span class="eq-b1"></span>
+                    <span class="eq-b2"></span>
+                    <span class="eq-b3"></span>
+                    <span class="eq-b4"></span>
+                    <span class="eq-b5"></span>
+                    <span class="eq-b6"></span>
+                    <span class="eq-b7"></span>
+                </span>
+                <span>Powered by</span>
+                <span class="promo-brand">Music Market</span>
+                <span>&middot;</span>
+                <span class="promo-cta">Try Free for 30 Days</span>
+            </a>
         </div>
     </div>
 
